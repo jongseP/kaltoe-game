@@ -2,10 +2,10 @@ import { makeWindow } from './ui/window.js';
 import { renderStatus } from './ui/statusbar.js';
 import { showCleared, showOvertime } from './ui/result.js';
 import { makeRng } from './rng.js';
-import { buildDay } from './day.js';
+import { pickStage } from './day.js';
 import { createRun } from './run.js';
 import { drawCard, shareResult } from './share.js';
-import { END_MIN, RANKS, STARS_TO_PROMOTE, speedFor, SLOWDOWN_FACTOR, interruptChance } from './config.js';
+import { END_MIN, RANKS, STARS_TO_PROMOTE, SLOTS, speedFor, slotSpeed, SLOWDOWN_FACTOR, interruptChance } from './config.js';
 import { load, save, applyClear, applyOvertime, applyStageResult, buyStar, daysToPromote, isSlowed, skillsFor } from './progress.js';
 import { getStage, poolsBySlot, INTERRUPTS } from './stages/registry.js';
 
@@ -78,14 +78,16 @@ const onBuyStar = () => { const r = buyStar(progress); if (r.ok) persist(r.p); r
 let visibility = null;
 document.addEventListener('visibilitychange', () => visibility?.(document.hidden));
 
-// 개발용: ?stage=<id> 이면 6칸 모두 그 스테이지
+// 개발용: ?stage=<id> 이면 하루 내내 그 스테이지
 const devStage = getStage(new URLSearchParams(location.search).get('stage') ?? '')?.id;
 
 function startRun() {
   $('result-area').replaceChildren();
   const rng = makeRng(Date.now());
   const skills = skillsFor(progress.rank);
-  const run = createRun({ day: devStage ? Array(6).fill(devStage) : buildDay(poolsBySlot(), rng), skills });
+  const pools = poolsBySlot();
+  const pick = devStage ? () => devStage : (slot, prev) => pickStage(pools[SLOTS[slot].id], prev, rng);
+  const run = createRun({ pick, skills });
 
   const skillBtns = skills.map((id) => {
     const b = document.createElement('button');
@@ -96,17 +98,17 @@ function startRun() {
   });
   $('skills').replaceChildren(...skillBtns);
 
-  let current = null, shownSlot = -1, last = null, interrupt = null, interruptAt = null;
+  let current = null, shown = -1, last = null, interrupt = null, interruptAt = null;
   const mount = () => {
     current?.destroy();
-    shownSlot = run.slotIndex;
+    shown = run.serial;
     const stage = getStage(run.stageId);
     const host = document.createElement('div');
     $('stage-area').replaceChildren(makeWindow({ title: `${stage.tag} ${stage.title}`, body: host }));
-    const speed = speedFor(progress.rank) * (isSlowed(progress, stage.id) ? SLOWDOWN_FACTOR : 1);
+    const speed = speedFor(progress.rank) * slotSpeed(run.slotIndex) * (isSlowed(progress, stage.id) ? SLOWDOWN_FACTOR : 1);
     current = stage.create(host, { hit: () => run.hit(), clear: () => run.clear(), speed, rng });
-    // 칸마다 이벤트는 최대 1번: 5~15초(게임 초) 사이 무작위 시점
-    interruptAt = rng() < interruptChance(progress.rank) ? 5 + rng() * 10 : null;
+    // 스테이지마다 이벤트는 최대 1번: 3~10초 사이 무작위 시점
+    interruptAt = rng() < interruptChance(progress.rank) ? 3 + rng() * 7 : null;
   };
 
   const closeInterrupt = (resume) => {
@@ -175,7 +177,7 @@ function startRun() {
     last = t;
     run.tick(dt);
     if (run.status === 'cleared' || run.status === 'overtime') return finish();
-    if (shownSlot !== run.slotIndex) mount();
+    if (shown !== run.serial) mount();
     if (interruptAt !== null && !interrupt && run.elapsed >= interruptAt) openInterrupt();
     skills.forEach((id, i) => { skillBtns[i].disabled = run.usedSkills.has(id) || (id === 'goHome' && run.slotIndex !== 5); });
     renderStatus($('statusbar'), { progress, run });

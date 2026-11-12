@@ -1,16 +1,15 @@
-import { SLOTS, END_MIN } from './config.js';
+import { SLOTS, END_MIN, DAY_SECONDS } from './config.js';
 
-// 칸마다 풀에서 스테이지 id를 1개씩 뽑는다. SLOTS 순서대로 6개가 나온다.
-export function buildDay(pools, rng) {
-  return SLOTS.map((slot) => {
-    const pool = pools[slot.id];
-    return pool[Math.floor(rng() * pool.length)];
-  });
-}
+const START_MIN = SLOTS[0].start;
 
-// 칸 시작 시각과 다음 칸 시작 시각(마지막 칸은 END_MIN) 사이를 fraction만큼 보간한다.
-export function gameMinute(slotIndex, fraction) {
-  const start = SLOTS[slotIndex].start;
-  const next = slotIndex + 1 < SLOTS.length ? SLOTS[slotIndex + 1].start : END_MIN;
-  return start + (next - start) * fraction;
+// 하루 경과(실제 초) → 게임 시각(분). 08:50에서 18:00까지 고르게 흐른다.
+export const minuteAt = (dayElapsed) => START_MIN + (END_MIN - START_MIN) * Math.min(1, dayElapsed / DAY_SECONDS);
+
+// 게임 시각이 속한 칸 번호
+export const slotAt = (min) => SLOTS.reduce((idx, s, i) => (min >= s.start ? i : idx), 0);
+
+// 칸 풀에서 다음 스테이지를 뽑는다. 풀이 2개 이상이면 방금 한 것은 피한다.
+export function pickStage(pool, prevId, rng) {
+  const choices = pool.length > 1 ? pool.filter((id) => id !== prevId) : pool;
+  return choices[Math.floor(rng() * choices.length)];
 }

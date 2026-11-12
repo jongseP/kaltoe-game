@@ -25,5 +25,6 @@ export function renderStatus(el, { progress, run }) {
       <span class="lbl">멘탈</span>
       <span class="sunken blocks green">${cells(Math.ceil(run.mental / 10))}</span>
       <span class="pct">${run.mental}%</span>
+      ${run.stageLeft ? `<span class="pct">⏱${Math.ceil(run.stageLeft())}초</span>` : ''}
     </div>`;
 }

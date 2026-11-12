@@ -1,6 +1,6 @@
-// 메일 99+: "답장"과 "전체 답장"이 계속 자리를 바꾼다. 답장 3번이 성공, 전체 답장을 누르면 hit.
+// 메일 99+: "답장"과 "전체 답장"이 무작위로 자리를 바꾼다. 답장 6번이 성공, 전체 답장을 누르면 hit.
 import { makeTimers } from './timers.js';
-const SUBJ = ['Re: Re: 회의록 확인 부탁', 'FW: 어제 건 관련', 'Re: 금주 보고 양식 변경'];
+const SUBJ = ['Re: Re: 회의록 확인 부탁', 'FW: 어제 건 관련', 'Re: 금주 보고 양식 변경', 'FW: FW: 공유드립니다', 'Re: (긴급) 확인 바랍니다', 'Re: 감사합니다^^'];
 
 export default {
   id: 'mail-reply', slot: 'commute', title: '받은메일함 (99+)', tag: '💼',
@@ -15,15 +15,15 @@ export default {
       b.addEventListener('click', fn);
       return b;
     };
-    let done = 0, flip = false;
-    const swap = () => { flip = !flip; row.firstChild.style.order = flip ? 2 : 1; row.lastChild.style.order = flip ? 1 : 2; };
-    const show = () => { mail.textContent = `📧 (${done + 1}/3) 수신: 전체 99+\n${SUBJ[done]}`; };
+    let done = 0;
+    const swap = () => { const f = ctx.rng() < 0.5; row.firstChild.style.order = f ? 2 : 1; row.lastChild.style.order = f ? 1 : 2; };
+    const show = () => { mail.textContent = `📧 (${done + 1}/6) 수신: 전체 99+\n${SUBJ[done]}`; };
     row.append(
-      mk('답장', () => { done++; if (done >= 3) return ctx.clear(); show(); swap(); }),
+      mk('답장', () => { if (++done >= 6) return ctx.clear(); show(); swap(); }),
       mk('전체 답장', () => { ctx.hit(); swap(); }),
     );
     show(); swap();
-    T.every(swap, 1600 / ctx.speed);
+    T.every(swap, 700 / ctx.speed);
     return { pause: T.pause, resume: T.resume, destroy() { T.destroy(); host.replaceChildren(); } };
   },
 };
