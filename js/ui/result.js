@@ -20,7 +20,7 @@ function buyButton(progress, onBuyStar, rerender) {
   });
 }
 
-export function showCleared(el, { progress, promoted: promotedAtCall, coinsEarned, onNext, onShare, onBuyStar }) {
+export function showCleared(el, { progress, promoted: promotedAtCall, coinsEarned, stats = '', onNext, onShare, onBuyStar }) {
   const render = (p) => {
     const promoted = promotedAtCall || p.rank > progress.rank;
     const body = document.createElement('div');
@@ -34,7 +34,8 @@ export function showCleared(el, { progress, promoted: promotedAtCall, coinsEarne
       보너스 💰×${coinsEarned} · ★ +1
       ${promoted ? `<div class="promoted">🎊 ${RANKS[p.rank]} 진급!</div>` : ''}
       ${top ? `<div>연속 칼퇴 ${p.clearStreak}일</div>` : `<div class="sunken blocks">${cells}</div>`}
-      <div>${top ? '최고 직급' : `${RANKS[p.rank + 1]} 진급까지 ${days}일`}</div>`;
+      <div>${top ? '최고 직급' : `${RANKS[p.rank + 1]} 진급까지 ${days}일`}</div>
+      <div class="stats">${stats}</div>`;
     const btns = document.createElement('div');
     btns.className = 'btns';
     const buy = buyButton(p, onBuyStar, render);
@@ -46,7 +47,7 @@ export function showCleared(el, { progress, promoted: promotedAtCall, coinsEarne
 }
 
 // progress(필수): 야근 처리가 끝난 진급 기록. 사기 버튼과 다음 직급 이름에 쓴다.
-export function showOvertime(el, { progress, stageTitle, minutesLeft, daysBefore, daysAfter, lostStar, onRetry, onShare, onBuyStar }) {
+export function showOvertime(el, { progress, stageTitle, hours, stats = '', daysBefore, daysAfter, lostStar, onRetry, onShare, onBuyStar }) {
   const render = (p, after) => {
     const root = document.createElement('div');
     root.className = 'overtime';
@@ -54,15 +55,16 @@ export function showOvertime(el, { progress, stageTitle, minutesLeft, daysBefore
     // 임원이거나 사기로 직급이 바뀌면 "→ 이제 N일" 줄은 의미가 없어 숨긴다
     const showDays = lostStar && p.rank === progress.rank && days !== null;
     root.innerHTML = `
-      <b class="tag">야근 확정</b><br><br>
-      ${stageTitle} 단계에서 멘탈이 바닥났습니다.<br><br>
-      퇴근까지 <b>${minutesLeft}분</b> 남았었습니다.<br>
+      <b class="tag">야근 ${hours}시간 확정</b><br><br>
+      ${stageTitle} 단계에서 처음 멘탈이 바닥났습니다.<br>
+      멘탈이 바닥날 때마다 야근이 1시간씩 늘어납니다.<br>
+      <span class="stats">${stats}</span><br><br>
       ${showDays ? `${RANKS[p.rank + 1]} 진급까지 <b>${daysBefore}일</b> 남았었습니다 → 이제 <b>${after}일</b><br>` : ''}<br>
       아무 곳이나 누르면 다시 출근합니다_<br><br>`;
     const buy = buyButton(p, onBuyStar, (np) => render(np, daysToPromote(np)));
     root.append(...(buy ? [buy] : []), button('공유', onShare, '결과 공유'));
     const shownAt = Date.now();
-    root.addEventListener('click', () => { if (Date.now() - shownAt >= 600) onRetry(); }); // 연타로 "N분 남았었습니다"를 건너뛰지 않게
+    root.addEventListener('click', () => { if (Date.now() - shownAt >= 600) onRetry(); }); // 연타로 결과를 건너뛰지 않게
     el.replaceChildren(root);
   };
   render(progress, daysAfter);

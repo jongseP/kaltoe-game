@@ -14,8 +14,10 @@ export const STARS_TO_PROMOTE = 3;
 export const STAR_PRICE = 5;
 
 export const MENTAL_START = 100;
-export const HIT_DAMAGE = 8;
-export const TIMEOUT_DAMAGE = 20;
+export const HIT_DAMAGE = 6;
+export const TIMEOUT_DAMAGE = 15;
+export const BURNOUT_REFILL = 60;     // 멘탈이 바닥나면 야근 +1시간, 멘탈은 여기까지 다시 찬다
+export const COMBO_BONUS_EVERY = 3;  // 실수 없이 연속으로 이만큼 깰 때마다 💰 +1
 export const STAGE_SECONDS = 20;     // 스테이지 하나의 제한 시간(실제 초)
 export const DAY_SECONDS = 600;      // 08:50~18:00 하루가 실제로 걸리는 시간(10분)
 export const CLEAR_HEAL = 3;         // 실수 없이 깨면 멘탈 회복

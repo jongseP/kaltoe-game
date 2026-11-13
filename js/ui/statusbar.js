@@ -19,7 +19,7 @@ export function renderStatus(el, { progress, run }) {
     <div class="row">
       <span class="lcd">${formatClock(now)}</span>
       <span class="sunken blocks">${cells(filled)}</span>
-      <span>18:00 퇴근</span>
+      ${run.overtimeHours ? `<span class="ot">야근 +${run.overtimeHours}h</span>` : '<span>18:00 퇴근</span>'}
     </div>
     <div class="row">
       <span class="lbl">멘탈</span>
