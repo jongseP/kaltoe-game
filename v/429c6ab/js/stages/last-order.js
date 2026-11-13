@@ -13,18 +13,19 @@ export default {
     const btn = host.querySelector('button');
     let pop = null, step = 0;
     const show = () => {
-      pop = document.createElement('div');
+      if (pop) return;
+      const mine = pop = document.createElement('div');
       pop.className = 'raised';
       pop.style.cssText = 'position:absolute;left:50%;top:48px;width:200px;height:64px;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;z-index:2';
       pop.textContent = `💬 팀장님: ${ASKS[Math.floor(ctx.rng() * ASKS.length)]}`;
-      pop.addEventListener('click', () => { pop.remove(); pop = null; ctx.hit(); });
+      pop.addEventListener('click', () => { mine.remove(); if (pop === mine) pop = null; ctx.hit(); });
       host.append(pop);
-      T.after(() => { pop?.remove(); pop = null; }, (900 + ctx.rng() * 900) / ctx.speed);
+      T.after(() => { mine.remove(); if (pop === mine) pop = null; }, (900 + ctx.rng() * 900) / ctx.speed);
     };
     btn.addEventListener('click', () => {
       if (ctx.goal(++step, LABELS.length)) return ctx.clear();
       btn.textContent = LABELS[step];
-      T.after(show, (80 + ctx.rng() * 250) / ctx.speed);
+      show();
     });
     // 가만히 있어도 가끔 튀어나온다
     T.every(() => { if (!pop && ctx.rng() < 0.5) show(); }, 1500 / ctx.speed);

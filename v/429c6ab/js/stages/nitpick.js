@@ -25,7 +25,7 @@ export default {
       const opts = shuffled([raw, ...Object.values(fmt).map((f) => f(v))], ctx.rng);
       box.replaceChildren(...opts.map((o) => button(o, () => {
         if (o !== want) { say.textContent = '🧓 팀장님: "내 말을 못 알아듣네"'; ctx.hit(); return; }
-        if (ctx.goal(++n - 1, asks.length)) return ctx.clear();
+        if (ctx.goal(++n, asks.length + 1)) return ctx.clear();
         show();
       })));
     };

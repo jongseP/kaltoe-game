@@ -21,7 +21,7 @@ export default {
     let wiggle = 0;
     T.every(() => { if (state === 'buzz') face.style.transform = `translateX(${(wiggle ^= 1) ? 3 : -3}px)`; }, 60);
     host.append(button('🙆 일어나기', () => {
-      if (state === 'ring') return;
+      if (state === 'ring' || state === 'wake') return;
       cancel();
       if (state === 'sleep') { msg.textContent = '🥱 너무 일찍 깼다... 오후가 피곤하다'; ctx.hit(); return sleep(); }
       face.textContent = '😎'; face.style.transform = '';
