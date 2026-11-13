@@ -5,7 +5,7 @@ import { makeRng } from './rng.js';
 import { pickStage } from './day.js';
 import { createRun } from './run.js';
 import { drawCard, shareResult } from './share.js';
-import { RANKS, HIT_DAMAGE, STARS_TO_PROMOTE, SLOTS, speedFor, slotSpeed, SLOWDOWN_FACTOR, interruptChance, mzWeight } from './config.js';
+import { RANKS, HIT_DAMAGE, TIMEOUT_DAMAGE, STAGE_SECONDS, STARS_TO_PROMOTE, SLOTS, speedFor, slotSpeed, SLOWDOWN_FACTOR, interruptChance, mzWeight } from './config.js';
 import { load, save, applyClear, applyOvertime, applyStageResult, buyStar, daysToPromote, isSlowed, skillsFor } from './progress.js';
 import { getStage, poolsBySlot, INTERRUPTS } from './stages/registry.js';
 import { GUIDE, SLOT_BANNER } from './stages/guide.js';
@@ -153,7 +153,8 @@ function startRun() {
       card.style.cssText = 'position:absolute;inset:0;z-index:3;display:flex;align-items:center;padding:12px;background:rgba(0,0,0,.45)';
       const cb = document.createElement('div');
       cb.className = 'card';
-      cb.innerHTML = '<div>처음 보는 업무!</div><div class="cmdword"></div><div class="line"></div><div class="line" style="color:#a00000"></div><div class="stats">실수하면 멘탈 -6 · 20초 안에 못 끝내면 -15</div>';
+      cb.innerHTML = '<div>처음 보는 업무!</div><div class="cmdword"></div><div class="line"></div><div class="line" style="color:#a00000"></div><div class="stats"></div>';
+      cb.lastChild.textContent = `실수하면 멘탈 -${HIT_DAMAGE} · ${STAGE_SECONDS}초 안에 못 끝내면 -${TIMEOUT_DAMAGE}`;
       cb.children[1].textContent = cmd;
       cb.children[2].textContent = `🎯 목표: ${goalText}`;
       if (warnText) cb.children[3].textContent = `⚠ 주의: ${warnText}`; else cb.children[3].remove();
@@ -263,7 +264,7 @@ function startRun() {
     if (shown !== run.serial) mount();
     if (intro && run.elapsed >= INTRO_SECONDS) { intro = false; if (!interrupt && !document.hidden) current?.resume(); }
     const left = run.stageLeft();
-    fuse.firstChild.style.width = `${left * 5}%`;
+    fuse.firstChild.style.width = `${100 * left / STAGE_SECONDS}%`;
     fuse.classList.toggle('low', left <= 5);
     if (left <= 5 && Math.ceil(left) !== lastSec && !interrupt) sfx.tick();
     lastSec = Math.ceil(left);

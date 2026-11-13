@@ -70,4 +70,16 @@ const emojiReact = {
   },
 };
 
-export default [messengerBomb, printerJam, comeHere, dadJoke, quitTalk, emojiReact];
+// 속임수 팝업: 눈에 띄는 버튼이 함정이다
+const fakeUpdate = choice('fake-update', '💻 시스템', '💻 "업데이트가 준비되었습니다 (예상 3시간)"',
+  '나중에', ['✅ 지금 설치하고 다시 시작', '확인'], 3500);
+const consent = choice('consent', '📜 인사팀 공지', '📜 "이번 달 야근 수당 포기에 동의하십니까?"',
+  '동의하지 않음', ['✅ 전체 동의', '동의하지 않지 않음'], 4000);
+const captcha = choice('captcha', '🤖 로봇 확인', '🤖 "사람이라면 야근이 아닌 것을 고르세요"',
+  '칼퇴', ['야근', '철야', '주말 특근'], 3500);
+const fakePrize = choice('fake-prize', '🎁 축하합니다', '🎁 "당첨! 지금 누르면 즉시 퇴근!"',
+  '✕ 닫기', ['🎁 즉시 퇴근하기', '당첨금 받기'], 4000);
+const bossCall = choice('boss-call', '📞 전화 수신', '📞 팀장님 전화가 오고 있습니다',
+  '받기', ['거절', '🔇 무음으로', '문자로 답장'], 3000);
+
+export default [messengerBomb, printerJam, comeHere, dadJoke, quitTalk, emojiReact, fakeUpdate, consent, captcha, fakePrize, bossCall];
