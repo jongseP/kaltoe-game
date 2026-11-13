@@ -2,8 +2,14 @@ import { SLOTS, END_MIN, DAY_SECONDS } from './config.js';
 
 const START_MIN = SLOTS[0].start;
 
-// 하루 경과(실제 초) → 게임 시각(분). 08:50에서 18:00까지 고르게 흐른다.
-export const minuteAt = (dayElapsed) => START_MIN + (END_MIN - START_MIN) * Math.min(1, dayElapsed / DAY_SECONDS);
+// 하루 경과(실제 초) → 게임 시각(분). 칸마다 실제 시간을 똑같이 나눠 준다(10분이면 칸당 100초).
+export function minuteAt(dayElapsed) {
+  const per = DAY_SECONDS / SLOTS.length;
+  const t = Math.min(dayElapsed, DAY_SECONDS);
+  const i = Math.min(SLOTS.length - 1, Math.floor(t / per));
+  const end = i + 1 < SLOTS.length ? SLOTS[i + 1].start : END_MIN;
+  return SLOTS[i].start + (end - SLOTS[i].start) * ((t - i * per) / per);
+}
 
 // 게임 시각이 속한 칸 번호
 export const slotAt = (min) => SLOTS.reduce((idx, s, i) => (min >= s.start ? i : idx), 0);
