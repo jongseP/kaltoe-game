@@ -12,7 +12,7 @@ export default {
       <button class="raised bt" style="width:100%;height:56px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none">누르고 있기: 살금살금</button>`;
     const boss = host.firstChild, me = host.children[1].lastChild, note = host.children[2], btn = host.lastChild;
     let pos = 0, held = false, state = 'away', cancel = () => {};
-    const draw = () => { me.style.left = `${pos * 0.82}%`; };
+    const draw = () => { me.style.left = `${pos * 0.82}%`; ctx.goal(Math.floor(pos), 100, '%'); };
     btn.addEventListener('pointerdown', (e) => { held = true; try { btn.setPointerCapture(e.pointerId); } catch { /* 합성 이벤트 */ } });
     const up = () => { held = false; };
     btn.addEventListener('pointerup', up);

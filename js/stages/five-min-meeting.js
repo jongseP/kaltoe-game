@@ -20,6 +20,7 @@ export default {
     let popped = 0;
     const draw = () => {
       head.textContent = `🧓 팀장님: 잠깐 5분만... (회의 진행 ${popped}/10)`;
+      ctx.goal(Math.min(popped, 10), 10);
       if (popped >= 10) { exit.disabled = false; exit.textContent = '🚪 출구'; }
     };
     const spawn = () => {

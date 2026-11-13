@@ -16,7 +16,7 @@ export default {
         note.textContent = pods ? '🧑 (♪ 못 들음)' : '🧑 "바로 옆인데 말로 하시죠?"';
         return ctx.hit();
       }
-      if (++ok >= 6) return ctx.clear();
+      if (ctx.goal(++ok, 6)) return ctx.clear();
       note.textContent = `🧑 "네~" (${ok}/6)`;
       pods = ctx.rng() < 0.5; draw();
     };

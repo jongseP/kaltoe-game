@@ -15,7 +15,7 @@ export default {
       say.textContent = `🧑 후배 (${n + 1}/6): "${q}"`;
       box.replaceChildren(...shuffled(Object.values(QA), ctx.rng).map((a) => button(a, () => {
         if (a !== QA[q]) { say.textContent = '🧑 후배: "그럼 안 할게요"'; ctx.hit(); return (cancel = T.after(ask, 500)); }
-        if (++n >= 6) return ctx.clear();
+        if (ctx.goal(++n, 6)) return ctx.clear();
         ask();
       })));
       cancel = T.after(() => { say.textContent = '🧑 후배: "답이 없으시네요? 퇴근할게요"'; ctx.hit(); cancel = T.after(ask, 500); }, 2500 / ctx.speed);

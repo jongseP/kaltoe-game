@@ -16,7 +16,7 @@ export default {
     draw();
     host.append(button('🏢 출근', () => {
       if (m >= 20 && m < 30) {
-        if (++ok >= 3) return ctx.clear();
+        if (ctx.goal(++ok, 3)) return ctx.clear();
         note.textContent = `🧓 "음, 됐어" (${ok}/3)`;
       } else {
         note.textContent = m >= 30 ? '🧓 "지각이네?"' : '🧓 "너무 일찍 와서 뭐 하게?"';

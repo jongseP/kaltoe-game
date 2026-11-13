@@ -49,7 +49,7 @@ export default {
       if (state === 'talk') return ctx.hit();
       if (state !== 'end' || nodded) return;
       nodded = true; count.textContent = ++nods;
-      if (nods >= 6) ctx.clear();
+      if (ctx.goal(nods, 6)) ctx.clear();
     });
     return { pause: T.pause, resume: T.resume, destroy() { T.destroy(); host.replaceChildren(); } };
   },

@@ -22,7 +22,7 @@ export default {
     host.append(button('🏃 퇴근', () => {
       cancel();
       if (state !== 'leave') { note.textContent = '🧓 "벌써 가?"'; ctx.hit(); return sit(); }
-      if (++out >= 2) return ctx.clear();
+      if (ctx.goal(++out, 2)) return ctx.clear();
       note.textContent = '(다음 날...)'; sit();
     }, 'width:100%;height:48px'));
     sit();

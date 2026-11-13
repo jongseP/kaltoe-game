@@ -22,7 +22,7 @@ export default {
       T.after(() => { pop?.remove(); pop = null; }, (900 + ctx.rng() * 900) / ctx.speed);
     };
     btn.addEventListener('click', () => {
-      if (++step >= LABELS.length) return ctx.clear();
+      if (ctx.goal(++step, LABELS.length)) return ctx.clear();
       btn.textContent = LABELS[step];
       T.after(show, (80 + ctx.rng() * 250) / ctx.speed);
     });

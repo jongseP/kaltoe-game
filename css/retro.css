@@ -68,3 +68,14 @@ button { touch-action: manipulation; }
 @keyframes fade { from { opacity: .45; } to { opacity: 0; } }
 @keyframes shake { 0%, 100% { transform: none; } 20% { transform: translate(-6px, 2px); } 40% { transform: translate(5px, -2px); } 60% { transform: translate(-4px, 1px); } 80% { transform: translate(3px, 0); } }
 @media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
+.blocks.mental i { flex: none; background: #008000; transition: width .2s; }
+.blocks.mental.low i { background: #c00000; }
+.hint .warn { color: #a00000; }
+.goal { display: flex; align-items: center; gap: 6px; font-weight: bold; margin-bottom: 8px; }
+.goal .pips { display: flex; gap: 2px; flex: 1; }
+.goal .pips i { flex: 1; max-width: 22px; height: 12px; border: 1px solid #404040; background: #fff; }
+.goal .pips i.on { background: #000080; }
+.card { text-align: center; }
+.card .cmdword { font-size: 30px; font-weight: bold; background: #ffe14d; border: 3px solid #000; display: inline-block; padding: 2px 14px; margin: 4px 0 10px; }
+.card .line { text-align: left; background: #fff; border: 1px solid #808080; padding: 6px 8px; margin-bottom: 6px; }
+.card .bt { width: 100%; height: 48px; font-weight: bold; margin-top: 4px; }

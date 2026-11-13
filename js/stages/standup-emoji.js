@@ -21,7 +21,7 @@ export default {
         row.textContent = '❓❓❓❓❓';
         box.replaceChildren(...shuffled(opts, ctx.rng).map((e) => button(e, () => {
           if (e !== major) { msg.textContent = '팀장님: 혼자 분위기 왜 그래?'; return ctx.hit(); }
-          if (++round >= 3) return ctx.clear();
+          if (ctx.goal(++round, 3)) return ctx.clear();
           start();
         }, 'font-size:24px')));
       }, 1100 / ctx.speed);

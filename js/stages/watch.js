@@ -32,7 +32,7 @@ export default {
       // 반응할 틈은 아주 잠깐
       cancel = T.after(() => {
         if (!held) miss();
-        cancel = T.after(() => { if (++looks >= 5) return ctx.clear(); away(); }, 1000 / ctx.speed);
+        cancel = T.after(() => { if (ctx.goal(++looks, 5)) return ctx.clear(); away(); }, 1000 / ctx.speed);
       }, 350);
     };
     away();

@@ -22,7 +22,7 @@ export default {
       if (!group) return;
       cancel();
       if (group === 'boss') { msg.textContent = '💸 계산은 막내가...'; ctx.hit(); return empty(); }
-      if (++joined >= 3) return ctx.clear();
+      if (ctx.goal(++joined, 3)) return ctx.clear();
       status(); empty();
     }, 'width:100%;height:48px'));
     status(); empty();

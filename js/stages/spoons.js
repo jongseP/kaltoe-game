@@ -39,7 +39,7 @@ export default {
       t.remove();
       seat.dataset.full = 1; seat.textContent = '🥄💧'; next++;
       if (next < 4) return;
-      if (++table > 2) return ctx.clear();
+      if (ctx.goal(++table - 1, 2)) return ctx.clear();
       setTable();
     };
     function makeSet() {

@@ -17,6 +17,7 @@ export default {
     const place = () => { me.style.left = `${lane * 33.33}%`; };
     T.every(() => {
       left -= 50;
+      ctx.goal(Math.floor((12000 - left) / 1000), 12, '초');
       msg.textContent = `버티기 ${Math.ceil(left / 1000)}초`;
       if (left <= 0) return ctx.clear();
       for (const d of [...drops]) {

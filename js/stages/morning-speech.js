@@ -17,6 +17,7 @@ export default {
       z = Math.min(100, z + 0.9 * ctx.speed);
       if (z >= 100) { ctx.hit(); talk.textContent = '🧓 "거기 자는 사람 누구야?"'; z = 40; }
       left -= 50;
+      ctx.goal(Math.floor((12000 - left) / 1000), 12, '초');
       if (left <= 0) return ctx.clear();
       draw();
     }, 50);

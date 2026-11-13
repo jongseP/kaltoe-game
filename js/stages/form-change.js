@@ -21,7 +21,7 @@ export default {
         b.addEventListener('click', () => {
           if (f.num !== next) { msg.textContent = `⚠ ${next}번부터 쓰라고 했잖아요`; return ctx.hit(); }
           f.done = true;
-          if (++next > NAMES.length) return ctx.clear();
+          if (ctx.goal(++next - 1, NAMES.length)) return ctx.clear();
           msg.textContent = '⚠ 양식이 바뀌었습니다 (v' + (next + 1) + ')';
           draw();
         });

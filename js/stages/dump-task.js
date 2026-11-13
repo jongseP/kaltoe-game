@@ -24,7 +24,7 @@ export default {
         if (!cards.has(card)) return;
         cards.delete(card); c.remove();
         if (mine) { msg.textContent = '🧓 "그건 네 일이잖아"'; return ctx.hit(); }
-        if (++back >= 10) return ctx.clear();
+        if (ctx.goal(++back, 10)) return ctx.clear();
         draw();
       });
       cards.add(card);

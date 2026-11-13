@@ -25,7 +25,7 @@ export default {
     const reply = (a) => () => {
       if (!want || a !== want) { say.textContent = '🧓 "내가 말하는데 끼어들어?"'; want = null; cancel(); ctx.hit(); cancel = T.after(line, 600); return; }
       want = null; cancel();
-      if (++ok >= 6) return ctx.clear();
+      if (ctx.goal(++ok, 6)) return ctx.clear();
       status(); cancel = T.after(line, 400);
     };
     row.append(button('네!', reply('네!'), 'flex:1;height:48px'), button('그럼요', reply('그럼요'), 'flex:1;height:48px'));

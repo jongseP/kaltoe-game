@@ -29,7 +29,7 @@ export default {
     });
     host.append(button('💾 저장', () => {
       if (KEYS.some((k) => cur[k] !== target[k])) { note.textContent = '🧓 "양식이 하나도 안 맞잖아"'; return ctx.hit(); }
-      if (++doc >= 2) return ctx.clear();
+      if (ctx.goal(++doc, 2)) return ctx.clear();
       note.textContent = '🧓 "이번엔 이 양식으로 다시"';
       start();
     }, 'width:100%'));

@@ -17,7 +17,7 @@ export default {
       d.textContent = '🧑‍💻';
       d.addEventListener('pointerdown', () => {
         if (i !== thief) { msg.textContent = '😠 "저 일하고 있는데요?"'; return ctx.hit(); }
-        if (++found >= 3) return ctx.clear();
+        if (ctx.goal(++found, 3)) return ctx.clear();
         start();
       });
       grid.append(d);

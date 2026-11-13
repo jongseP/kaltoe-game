@@ -16,8 +16,8 @@ export default {
       grid.replaceChildren(...shuffled(DESKS, ctx.rng).map((d) => button(d === away ? `💤 ${d} (부재중)` : `🪑 ${d}`, () => {
         if (d === away) { say('\n⚠ 부재중이에요'); return ctx.hit(); }
         if (d !== SEQ[step]) { say(`\n⚠ ${d}님: "이게 왜 나한테 와?"`); return ctx.hit(); }
-        if (++step >= SEQ.length) {
-          if (++lap >= 2) return ctx.clear();
+        if (ctx.goal(++step, SEQ.length)) {
+          if (ctx.goal(++lap, 2)) return ctx.clear();
           step = 0; say('\n🧓 본부장: "반려! 처음부터"'); return draw();
         }
         say(); draw();

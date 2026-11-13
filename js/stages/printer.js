@@ -31,7 +31,7 @@ export default {
       const dx = e.clientX - sx;
       if (Math.abs(dx) < 50) return;
       if (dx * dir < 0) return ctx.hit();
-      if (++cleared >= 5) { cancel(); msg.textContent = '🖨 인쇄 완료!'; return ctx.clear(); }
+      if (ctx.goal(++cleared, 5)) { cancel(); msg.textContent = '🖨 인쇄 완료!'; return ctx.clear(); }
       newJam();
     });
     paper.addEventListener('pointercancel', () => { drag = false; paper.style.transform = ''; });

@@ -5,7 +5,7 @@ import { makeRng } from './rng.js';
 import { pickStage } from './day.js';
 import { createRun } from './run.js';
 import { drawCard, shareResult } from './share.js';
-import { RANKS, STARS_TO_PROMOTE, SLOTS, speedFor, slotSpeed, SLOWDOWN_FACTOR, interruptChance, mzWeight } from './config.js';
+import { RANKS, HIT_DAMAGE, STARS_TO_PROMOTE, SLOTS, speedFor, slotSpeed, SLOWDOWN_FACTOR, interruptChance, mzWeight } from './config.js';
 import { load, save, applyClear, applyOvertime, applyStageResult, buyStar, daysToPromote, isSlowed, skillsFor } from './progress.js';
 import { getStage, poolsBySlot, INTERRUPTS } from './stages/registry.js';
 import { GUIDE, SLOT_BANNER } from './stages/guide.js';
@@ -90,6 +90,10 @@ const onBuyStar = () => { const r = buyStar(progress); if (r.ok) persist(r.p); r
 let visibility = null;
 document.addEventListener('visibilitychange', () => visibility?.(document.hidden));
 
+// 한 번이라도 해 본 게임 (설명 카드를 다시 띄우지 않는다)
+let seen = new Set();
+try { seen = new Set(JSON.parse(store.getItem('kaltoe.seen.v1') || '[]')); } catch { /* 처음이거나 저장소 차단 */ }
+
 // 개발용: ?stage=<id> 이면 하루 내내 그 스테이지
 const devStage = getStage(new URLSearchParams(location.search).get('stage') ?? '')?.id;
 
@@ -111,7 +115,7 @@ function startRun() {
   $('skills').replaceChildren(...skillBtns);
 
   let current = null, shown = -1, last = null, interrupt = null, interruptAt = null;
-  let intro = false, fuse = null, lastSec = 0;
+  let intro = false, fuse = null, lastSec = 0, card = null;
   const INTRO_SECONDS = 1; // 한마디가 떠 있는 동안 스테이지는 멈춰 있다
   const mount = () => {
     current?.destroy();
@@ -119,15 +123,58 @@ function startRun() {
     const stage = getStage(run.stageId);
     const [cmd, hint] = GUIDE[stage.id];
     const body = document.createElement('div');
-    body.innerHTML = '<div class="fuse"><i></i></div><div class="hint"></div><div></div>';
+    const cut = hint.indexOf('. ');
+    const goalText = cut < 0 ? hint : hint.slice(0, cut), warnText = cut < 0 ? '' : hint.slice(cut + 2);
+    body.innerHTML = '<div class="fuse"><i></i></div><div class="hint"><div></div><div class="warn"></div></div><div class="goal"></div><div></div>';
     fuse = body.firstChild;
-    body.children[1].textContent = `👉 ${hint}`;
+    body.children[1].firstChild.textContent = `🎯 ${goalText}`;
+    body.children[1].lastChild.textContent = warnText ? `⚠ ${warnText}` : '';
+    const goalEl = body.children[2];
+    // 스테이지가 부르는 진행 표시: goal(한 만큼, 목표, 단위) → 다 했으면 true
+    const goal = (done, total, unit = '') => {
+      const d = Math.max(0, Math.min(done, total));
+      goalEl.innerHTML = unit || total > 12
+        ? `<span>달성 ${d}${unit} / ${total}${unit}</span><span class="pips"><i class="on" style="max-width:none;flex:${d}"></i><i style="max-width:none;flex:${total - d}"></i></span>`
+        : `<span>달성 ${d} / ${total}</span><span class="pips">${Array.from({ length: total }, (_, i) => `<i${i < d ? ' class="on"' : ''}></i>`).join('')}</span>`;
+      return done >= total;
+    };
+    const m = hint.match(/\((\d+)(번|초)\)/);
+    if (m) goal(0, +m[1], m[2] === '초' ? '초' : '');
     const host = body.lastChild;
     $('stage-area').replaceChildren(makeWindow({ title: `${stage.tag} ${stage.title}`, body }));
     const speed = speedFor(progress.rank) * slotSpeed(run.slotIndex) * (isSlowed(progress, stage.id) ? SLOWDOWN_FACTOR : 1);
-    current = stage.create(host, { hit: () => run.hit(), clear: () => run.clear(), speed, rng });
+    current = stage.create(host, { hit: () => run.hit(), clear: () => run.clear(), goal, speed, rng });
     current.pause(); intro = true;
-    toast(cmd, 'cmd', INTRO_SECONDS * 1000);
+    card?.remove(); card = null;
+    if (seen.has(stage.id)) toast(cmd, 'cmd', INTRO_SECONDS * 1000);
+    else {
+      // 처음 보는 게임: 설명 카드를 띄우고 [시작]을 누를 때까지 시간을 멈춘다
+      const mine = card = document.createElement('div');
+      card.style.cssText = 'position:absolute;inset:0;z-index:3;display:flex;align-items:center;padding:12px;background:rgba(0,0,0,.45)';
+      const cb = document.createElement('div');
+      cb.className = 'card';
+      cb.innerHTML = '<div>처음 보는 업무!</div><div class="cmdword"></div><div class="line"></div><div class="line" style="color:#a00000"></div><div class="stats">실수하면 멘탈 -6 · 20초 안에 못 끝내면 -15</div>';
+      cb.children[1].textContent = cmd;
+      cb.children[2].textContent = `🎯 목표: ${goalText}`;
+      if (warnText) cb.children[3].textContent = `⚠ 주의: ${warnText}`; else cb.children[3].remove();
+      const go = document.createElement('button');
+      go.className = 'raised bt';
+      go.textContent = '▶ 시작!';
+      go.addEventListener('click', () => {
+        mine.remove();
+        if (card !== mine) return;
+        card = null; seen.add(stage.id);
+        try { store.setItem('kaltoe.seen.v1', JSON.stringify([...seen])); } catch { /* 저장 실패해도 괜찮다 */ }
+        if (!document.hidden && !interrupt) run.resume();
+      });
+      cb.append(go);
+      const w = document.createElement('div');
+      w.style.width = '100%';
+      w.append(makeWindow({ title: `${stage.tag} 업무 설명`, body: cb }));
+      card.append(w);
+      $('desk').append(card);
+      run.pause();
+    }
     // 스테이지마다 이벤트는 최대 1번: 3~10초 사이 무작위 시점
     interruptAt = rng() < interruptChance(progress.rank) ? 3 + rng() * 7 : null;
   };
@@ -162,12 +209,12 @@ function startRun() {
   visibility = (hidden) => {
     if (hidden) { run.pause(); current?.pause(); interrupt?.it.pause(); return; }
     interrupt?.it.resume();
-    if (!interrupt) { run.resume(); if (!intro) current?.resume(); }
+    if (!interrupt && !card) { run.resume(); if (!intro) current?.resume(); }
   };
 
   // run이 쌓아 둔 사건을 화면·소리 효과로 바꾼다
   const onEvent = (e) => {
-    if (e.type === 'hit') { sfx.hit(); shake(); flash('#c00000'); }
+    if (e.type === 'hit') { sfx.hit(); shake(); flash('#c00000'); toast(`멘탈 -${HIT_DAMAGE}`, 'bad', 600); }
     else if (e.type === 'shield') toast('🛡 "회의 때 말씀드릴게요" 막음!');
     else if (e.type === 'clear') { sfx.clear(); toast('✔ 처리 완료'); }
     else if (e.type === 'clean') { sfx.clean(); flash('#00a000'); toast(e.bonus ? `✔ 완벽! ${e.combo}연속 💰+2` : '✔ 완벽! 💰+1'); }

@@ -23,7 +23,7 @@ export default {
       say.textContent = `🛗 ${3 + n * 3}F  🧓 팀장님: ${q.q}`;
       box.replaceChildren(...shuffled([q.ok, ...q.bad], ctx.rng).map((a) => button(a, () => {
         if (a !== q.ok) { ctx.hit(); say.textContent = '🧓 팀장님: ...(정적)'; }
-        if (++n >= qs.length) return ctx.clear();
+        if (ctx.goal(++n, qs.length)) return ctx.clear();
         ask();
       })));
       cancel = T.after(() => { ctx.hit(); say.textContent = '🧓 팀장님: ...(어색한 침묵)'; cancel = T.after(ask, 600); }, 3000 / ctx.speed);

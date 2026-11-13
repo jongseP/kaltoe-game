@@ -23,7 +23,7 @@ export default {
     host.append(button('👉 패스!', () => {
       if (PEOPLE[at] !== '나') { msg.textContent = '🧓 "왜 찔려? 너 뭐 했어?"'; return ctx.hit(); }
       cancel();
-      if (++passes >= 6) return ctx.clear();
+      if (ctx.goal(++passes, 6)) return ctx.clear();
       status(); move();
     }, 'width:100%;height:48px'));
     status(); draw(); cancel = T.after(move, 400);

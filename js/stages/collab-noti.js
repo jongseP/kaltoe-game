@@ -21,7 +21,7 @@ export default {
     });
     const draw = (ch) => { ch.c.textContent = `${ch.dot ? (ch.mention ? '🔴@' : '🔴') : ''}#${ch.name}`; ch.c.style.fontWeight = ch.dot ? 'bold' : ''; };
     const count = () => chs.filter((c) => c.dot).length;
-    const status = () => { msg.textContent = `안 읽은 채널 ${count()}개`; };
+    const status = () => { msg.textContent = `안 읽은 채널 ${count()}개`; ctx.goal(chs.length - count(), chs.length, '개'); };
     const off = (ch) => {
       ch.dot = false; ch.mention = false; ch.cancel(); draw(ch); status();
       if (stopSpawn && count() === 0) ctx.clear();

@@ -27,7 +27,7 @@ export default {
       if (!bait) { add(`나: ${a}`); add('B팀장: 갑자기?'); return ctx.hit(); }
       bait = false; cancel(); add(`나: ${a}`);
       if (a !== ANS[0]) { add('😱 다른 팀장: 아 그래?'); ctx.hit(); }
-      else if (++ok >= 5) return ctx.clear();
+      else if (ctx.goal(++ok, 5)) return ctx.clear();
       status(); cancel = T.after(next, 400);
     };
     box.append(...shuffled(ANS, ctx.rng).map((a) => button(a, answer(a), 'font-size:12px')));

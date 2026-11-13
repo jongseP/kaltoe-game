@@ -25,7 +25,7 @@ export default {
         return [`올해 ${f.k}은(는) ${v}${f.u}로 집계되었습니다.`, i === wrong];
       }), ctx.rng).map(([t, bad]) => button(t, () => {
         if (!bad) { msg.textContent = '🧓 "그거 맞는 건데?"'; return ctx.hit(); }
-        if (++round >= 3) return ctx.clear();
+        if (ctx.goal(++round, 3)) return ctx.clear();
         start();
       }, 'text-align:left;font-size:12px')));
     };

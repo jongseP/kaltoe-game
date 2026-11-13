@@ -19,7 +19,7 @@ export default {
     host.append(button('📝 확정', () => {
       if (!approved) { msg.textContent = '⚠ 아직 승인 안 났는데요?'; return ctx.hit(); }
       approved = false;
-      if (++days >= 2) return ctx.clear();
+      if (ctx.goal(++days, 2)) return ctx.clear();
       msg.textContent = '연차 1일 확정! 하루 더 (1/2)';
       tick();
     }, 'width:100%;height:44px'));

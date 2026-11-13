@@ -19,7 +19,7 @@ export default {
     const swap = () => { const f = ctx.rng() < 0.5; row.firstChild.style.order = f ? 2 : 1; row.lastChild.style.order = f ? 1 : 2; };
     const show = () => { mail.textContent = `📧 (${done + 1}/6) 수신: 전체 99+\n${SUBJ[done]}`; };
     row.append(
-      mk('답장', () => { if (++done >= 6) return ctx.clear(); show(); swap(); }),
+      mk('답장', () => { if (ctx.goal(++done, 6)) return ctx.clear(); show(); swap(); }),
       mk('전체 답장', () => { ctx.hit(); swap(); }),
     );
     show(); swap();

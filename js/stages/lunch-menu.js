@@ -26,7 +26,7 @@ export default {
         b.textContent = m;
         b.addEventListener('click', () => {
           if (m === answer) {
-            if (++round >= 3) return ctx.clear();
+            if (ctx.goal(++round, 3)) return ctx.clear();
             say.textContent = `🧓 팀장님: ${CHANGE[Math.floor(ctx.rng() * CHANGE.length)]}`;
             box.replaceChildren();
             cancel.push(T.after(start, 700));

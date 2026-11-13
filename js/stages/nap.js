@@ -25,7 +25,7 @@ export default {
       cancel();
       if (state === 'sleep') { msg.textContent = '🥱 너무 일찍 깼다... 오후가 피곤하다'; ctx.hit(); return sleep(); }
       face.textContent = '😎'; face.style.transform = '';
-      if (++naps >= 3) return ctx.clear();
+      if (ctx.goal(++naps, 3)) return ctx.clear();
       state = 'wake'; cancel = T.after(sleep, 500);
     }, 'width:100%;height:48px'));
     sleep();

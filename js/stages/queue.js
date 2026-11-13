@@ -13,7 +13,7 @@ export default {
     let who = null, done = 0, cancel = () => {};
     const status = () => { msg.textContent = `줄 지키기 ${done}/6`; };
     const idle = () => { who = null; line.textContent = '🍱 … 🧍나 [🧓자리]'; cancel = T.after(come, (500 + ctx.rng() * 900) / ctx.speed); };
-    const pass = () => { if (++done >= 6) return ctx.clear(); status(); idle(); };
+    const pass = () => { if (ctx.goal(++done, 6)) return ctx.clear(); status(); idle(); };
     const come = () => {
       who = ctx.rng() < 0.3 ? 'boss' : pick(CUT, ctx.rng);
       line.textContent = who === 'boss' ? '🧓 팀장님: "자리 맡아 놨지?"' : `${who}: "저 여기 서도 되죠?"`;

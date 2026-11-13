@@ -12,7 +12,7 @@ export default {
     const clock = host.firstChild.firstElementChild, reps = host.firstChild.lastElementChild;
     const man = host.children[1], note = host.children[2], row = host.lastChild;
     let min = 0, n = 0, photo = false, shot = false, back = false, up = false, cancel = () => {};
-    const draw = () => { clock.textContent = `12:${String(Math.floor(min)).padStart(2, '0')}`; reps.textContent = `${n}/25회 ${shot ? '📸✅' : '📸❌'}`; };
+    const draw = () => { clock.textContent = `12:${String(Math.floor(min)).padStart(2, '0')}`; reps.textContent = `${n}/25회 ${shot ? '📸✅' : '📸❌'}`; ctx.goal(n, 25, '회'); };
     T.every(() => {
       min += 0.3 * ctx.speed;
       if (min >= 60) { note.textContent = '🧓 "점심시간 끝난 지가 언젠데"'; ctx.hit(); min = 30; }

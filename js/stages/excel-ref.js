@@ -48,7 +48,7 @@ export default {
       if (i !== active) return ctx.hit();
       c.textContent = num(); c.style.color = '';
       clearTimers();
-      if (++fixed >= 6) { active = -1; return ctx.clear(); }
+      if (ctx.goal(++fixed, 6)) { active = -1; return ctx.clear(); }
       pick();
     }));
     pick();

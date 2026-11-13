@@ -28,7 +28,7 @@ export default {
         b.addEventListener('click', () => {
           if (round >= ROUNDS.length) return;
           if (l !== r.real) return ctx.hit();
-          if (++round >= ROUNDS.length) return ctx.clear();
+          if (ctx.goal(++round, ROUNDS.length)) return ctx.clear();
           shuffle();
         });
         return b;

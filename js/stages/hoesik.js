@@ -24,7 +24,7 @@ export default {
       say.textContent = `🧓 팀장님 (${round + 1}/3): "오늘 1차만 딱 하자~"\n` + blocked.map((b) => `🧓 "${EXCUSES[b]}"`).join('\n');
       box.replaceChildren(...shuffled(four, ctx.rng).map((e) => button(e, () => {
         if (e !== free) { say.textContent = `🧓 "${EXCUSES[e]}... 라고 했잖아?"`; ctx.hit(); return (cancel = T.after(start, 700)); }
-        if (++round >= 3) return ctx.clear();
+        if (ctx.goal(++round, 3)) return ctx.clear();
         start();
       }, 'font-size:12px')));
       cancel = T.after(() => { say.textContent = '🧓 "대답 없으면 가는 걸로~"'; ctx.hit(); cancel = T.after(start, 700); }, 3500 / ctx.speed);
