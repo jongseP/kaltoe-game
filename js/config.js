@@ -25,4 +25,6 @@ export const slotSpeed = (slotIndex) => 1 + 0.08 * slotIndex;
 export const speedFor = (rankIndex) => 1 + 0.15 * rankIndex;
 export const SLOWDOWN_AFTER_FAILS = 3;
 export const SLOWDOWN_FACTOR = 0.8;
+// 직급이 오를수록 🆕 MZ 스테이지 비중이 커진다 (인턴 1배 → 임원 3배)
+export const mzWeight = (rankIndex) => 1 + 0.4 * rankIndex;
 export const interruptChance = (rankIndex) => 0.1 + 0.04 * rankIndex;

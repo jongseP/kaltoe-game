@@ -38,6 +38,7 @@ import juniorLeft from './junior-left.js';
 import quietQuit from './quiet-quit.js';
 import bossBehind from './boss-behind.js';
 import bossAway from './boss-away.js';
+import moreInterrupts from './interrupts.js';
 import { SLOTS } from '../config.js';
 
 export const STAGES = [
@@ -49,7 +50,7 @@ export const STAGES = [
   fiveMinMeeting, lastOrder, hoesik, bossBag, juniorLeft, quietQuit,
 ];
 // 끼어들기 약속: { id, title, create(host, ctx: {close, hit, addCoin}) → { pause, resume, destroy } }
-export const INTERRUPTS = [bossBehind, bossAway];
+export const INTERRUPTS = [bossBehind, bossAway, ...moreInterrupts];
 
 export const getStage = (id) => STAGES.find((s) => s.id === id);
 

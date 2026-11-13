@@ -5,7 +5,7 @@ import { makeRng } from './rng.js';
 import { pickStage } from './day.js';
 import { createRun } from './run.js';
 import { drawCard, shareResult } from './share.js';
-import { END_MIN, RANKS, STARS_TO_PROMOTE, SLOTS, speedFor, slotSpeed, SLOWDOWN_FACTOR, interruptChance } from './config.js';
+import { END_MIN, RANKS, STARS_TO_PROMOTE, SLOTS, speedFor, slotSpeed, SLOWDOWN_FACTOR, interruptChance, mzWeight } from './config.js';
 import { load, save, applyClear, applyOvertime, applyStageResult, buyStar, daysToPromote, isSlowed, skillsFor } from './progress.js';
 import { getStage, poolsBySlot, INTERRUPTS } from './stages/registry.js';
 
@@ -86,7 +86,7 @@ function startRun() {
   const rng = makeRng(Date.now());
   const skills = skillsFor(progress.rank);
   const pools = poolsBySlot();
-  const pick = devStage ? () => devStage : (slot, prev) => pickStage(pools[SLOTS[slot].id], prev, rng);
+  const pick = devStage ? () => devStage : (slot, prev) => pickStage(pools[SLOTS[slot].id], prev, rng, (id) => (getStage(id).tag === '🆕' ? mzWeight(progress.rank) : 1));
   const run = createRun({ pick, skills });
 
   const skillBtns = skills.map((id) => {
@@ -129,11 +129,12 @@ function startRun() {
     $('overlay-area').append(wrap);
     run.pause(); current?.pause();
     interrupt = { wrap };
-    // 멈춘 판은 hit를 무시하므로 먼저 다시 켜고 hit한다
+    // 멈춘 판은 hit를 무시하므로 잠깐 켜고 hit한 뒤 다시 멈춘다 (닫힐 때 close가 다시 켠다)
     interrupt.it = def.create(host, {
       close: () => closeInterrupt(true),
-      hit: () => { run.resume(); run.hit(); },
+      hit: () => { run.resume(); run.hit(); run.pause(); },
       addCoin: () => run.addCoin(),
+      rng, speed: speedFor(progress.rank),
     });
   };
   visibility = (hidden) => {

@@ -9,7 +9,10 @@ export const minuteAt = (dayElapsed) => START_MIN + (END_MIN - START_MIN) * Math
 export const slotAt = (min) => SLOTS.reduce((idx, s, i) => (min >= s.start ? i : idx), 0);
 
 // 칸 풀에서 다음 스테이지를 뽑는다. 풀이 2개 이상이면 방금 한 것은 피한다.
-export function pickStage(pool, prevId, rng) {
+// weight(id): 뽑힐 비중 (기본 1)
+export function pickStage(pool, prevId, rng, weight = () => 1) {
   const choices = pool.length > 1 ? pool.filter((id) => id !== prevId) : pool;
-  return choices[Math.floor(rng() * choices.length)];
+  let r = rng() * choices.reduce((s, id) => s + weight(id), 0);
+  for (const id of choices) { r -= weight(id); if (r < 0) return id; }
+  return choices[choices.length - 1];
 }
