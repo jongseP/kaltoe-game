@@ -29,7 +29,10 @@ export function createRun({ pick, skills }) {
   // clear() 중복 가드: 새 스테이지를 띄운 뒤 tick()이 한 번도 없었으면 clear()를 무시한다.
   let fresh = false;
 
+  // 칸(시간대)은 스테이지 사이에서만 바뀐다. 하던 게임을 중간에 자르지 않는다.
   function next() {
+    const slot = slotAt(run.now());
+    if (slot !== run.slotIndex) { run.slotIndex = slot; run.events.push({ type: 'slot' }); }
     run.stageId = pick(run.slotIndex, run.stageId);
     run.serial++; run.elapsed = 0; run.stageHadHit = false; fresh = true; run.played++;
   }
@@ -52,8 +55,6 @@ export function createRun({ pick, skills }) {
     run.dayElapsed += dt;
     run.elapsed += dt;
     if (run.dayElapsed >= DAY_SECONDS) return end();
-    const slot = slotAt(run.now());
-    if (slot !== run.slotIndex) { run.slotIndex = slot; next(); run.events.push({ type: 'slot' }); return; }
     if (run.elapsed >= STAGE_SECONDS) run.timeout();
   };
   run.hit = () => {

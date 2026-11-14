@@ -1,6 +1,6 @@
 // 트집 피드백 "숫자 좀 예쁘게": 팀장님 요청대로 숫자 표기를 고른다(3번). 마지막엔 "처음 게 낫네" → 원래 숫자를 골라야 한다.
 // 틀리면 hit.
-import { makeTimers, button, shuffled, handle } from './ui.js';
+import { makeTimers, shuffled, handle, ask } from './ui.js';
 
 const fmt = {
   '쉼표 넣어서': (v) => v.toLocaleString('ko-KR'),
@@ -23,11 +23,14 @@ export default {
       const want = n < asks.length ? fmt[asks[n]](v) : raw;
       say.textContent = n < asks.length ? `🧓 팀장님 (${n + 1}/4): "숫자 좀 예쁘게... ${asks[n]}"` : '🧓 팀장님 (4/4): "음... 그냥 처음 게 낫네"';
       const opts = shuffled([raw, ...Object.values(fmt).map((f) => f(v))], ctx.rng);
-      box.replaceChildren(...opts.map((o) => button(o, () => {
-        if (o !== want) { say.textContent = '🧓 팀장님: "내 말을 못 알아듣네"'; ctx.hit(); return; }
-        if (ctx.goal(++n, asks.length + 1)) return ctx.clear();
-        show();
-      })));
+      ask(T, box, {
+        options: opts, right: want,
+        onPick: (ok) => {
+          if (ok) return void ctx.goal(++n, asks.length + 1);
+          say.textContent = '🧓 팀장님: "내 말을 못 알아듣네"'; ctx.hit();
+        },
+        then: () => (n > asks.length ? ctx.clear() : show()),
+      });
     };
     show();
     return handle(T, host);

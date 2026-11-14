@@ -1,5 +1,5 @@
 // 추가 스테이지 6개 (시간대마다 1개). 약속은 run.js 머리말과 같다.
-import { makeTimers, button, shuffled, handle } from './ui.js';
+import { makeTimers, button, shuffled, handle, ask } from './ui.js';
 
 // 사원증 찾기: 가방 속 9칸에서 🪪를 찾는다(3번). 칸은 계속 섞이고, 닮은 카드(💳 🎫)나 다른 물건을 누르면 hit.
 const badge = {
@@ -56,23 +56,24 @@ const splitBill = {
   id: 'split-bill', slot: 'lunch', title: '더치페이.calc', tag: '💼',
   create(host, ctx) {
     const T = makeTimers();
-    host.innerHTML = '<div class="sunken" style="padding:6px;min-height:62px;white-space:pre-line"></div><div style="display:flex;gap:6px;margin-top:8px"></div>';
+    host.innerHTML = '<div class="sunken" style="padding:6px;min-height:62px;white-space:pre-line"></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px"></div>';
     const say = host.firstChild, row = host.lastChild;
     const won = (v) => `${v.toLocaleString('ko-KR')}원`;
-    let n = 0, cancel = () => {};
+    let n = 0;
     const round = () => {
-      cancel();
       const people = 3 + Math.floor(ctx.rng() * 2), total = 12000 * (2 + Math.floor(ctx.rng() * 3));
       const boss = ctx.rng() < 0.5;
       const answer = total / (boss ? people - 1 : people);
       const wrong = [...new Set([boss ? total / people : total / (people - 1), answer + 1000, answer - 2000])].filter((v) => v !== answer).slice(0, 2);
       say.textContent = `🧾 ${people}명이 ${won(total)}\n${boss ? '🧓 "아이고, 난 지갑을 두고 왔네"' : '🧓 "오늘은 각자 내자"'}\n내는 사람 1인당?`;
-      row.replaceChildren(...shuffled([answer, ...wrong], ctx.rng).map((v) => button(won(v), () => {
-        if (v !== answer) { say.textContent = '🧮 계산이 안 맞는데요...'; ctx.hit(); return (cancel = T.after(round, 700)); }
-        if (ctx.goal(++n, 3)) return ctx.clear();
-        round();
-      }, 'flex:1;height:48px;font-size:12px')));
-      cancel = T.after(() => { say.textContent = '🧓 "그냥 김 사원이 다 내"'; ctx.hit(); cancel = T.after(round, 700); }, 5000 / ctx.speed);
+      ask(T, row, {
+        options: shuffled([answer, ...wrong], ctx.rng).map(won), right: won(answer), ms: 8000 / ctx.speed, css: 'height:48px;font-size:12px',
+        onPick: (ok, v) => {
+          if (ok) return void ctx.goal(++n, 3);
+          say.textContent = v ? `🧮 계산이 안 맞는데요... (${won(total)} ÷ ${boss ? people - 1 : people}명)` : '🧓 "그냥 김 사원이 다 내"'; ctx.hit();
+        },
+        then: () => (n >= 3 ? ctx.clear() : round()),
+      });
     };
     round();
     return handle(T, host);
@@ -115,23 +116,21 @@ const phone = {
     const T = makeTimers();
     host.innerHTML = '<div class="sunken" style="padding:6px;min-height:44px"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:8px"></div>';
     const say = host.firstChild, box = host.lastChild;
-    let n = 0, cancel = () => {};
+    let n = 0;
     const ring = () => {
-      cancel();
       const wrongCall = ctx.rng() < 0.25;
       const teams = shuffled(Object.keys(TEAMS), ctx.rng).slice(0, 4);
-      const right = wrongCall ? '끊기' : teams[0];
-      say.textContent = `☎ 따르릉! "${wrongCall ? '어? 거기 중국집 아니에요?' : TEAMS[right]}"`;
-      const done = (ok, why) => {
-        if (!ok) { say.textContent = why; ctx.hit(); return (cancel = T.after(ring, 700)); }
-        if (ctx.goal(++n, 5)) return ctx.clear();
-        ring();
-      };
-      box.replaceChildren(
-        ...shuffled(teams, ctx.rng).map((t) => button(`→ ${t}`, () => done(t === right, wrongCall ? '☎ "저 짜장면 시킬 건데요?"' : `☎ "${t} 아닌데요..." (다시 돌아옴)`), 'height:40px')),
-        button('📵 끊기', () => done(wrongCall, '🧓 "고객 전화를 끊어?"'), 'grid-column:1/-1;height:36px'),
-      );
-      cancel = T.after(() => done(false, '☎ "여보세요? 여보세요?"'), 3500 / ctx.speed);
+      const HANG = '📵 끊기';
+      say.textContent = `☎ 따르릉! "${wrongCall ? '어? 거기 중국집 아니에요?' : TEAMS[teams[0]]}"`;
+      ask(T, box, {
+        options: [...shuffled(teams, ctx.rng).map((t) => `→ ${t}`), HANG], right: wrongCall ? HANG : `→ ${teams[0]}`, ms: 5500 / ctx.speed, css: 'height:40px',
+        onPick: (ok, a) => {
+          if (ok) return void ctx.goal(++n, 5);
+          say.textContent = !a ? '☎ "여보세요? 여보세요?"' : a === HANG ? '🧓 "고객 전화를 끊어?"' : wrongCall ? '☎ "저 짜장면 시킬 건데요?"' : `☎ "${a.slice(2)} 아닌데요..." (다시 돌아옴)`;
+          ctx.hit();
+        },
+        then: () => (n >= 5 ? ctx.clear() : ring()),
+      });
     };
     ring();
     return handle(T, host);

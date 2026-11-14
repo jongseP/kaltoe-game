@@ -16,7 +16,7 @@ export default {
       if (ctx.rng() < 0.45) {
         const [q, a] = pick(ENDS, ctx.rng);
         want = a; say.textContent = `🧓 "${q}"`;
-        cancel = T.after(() => { if (want) { want = null; say.textContent = '🧓 "대답 안 해?"'; ctx.hit(); } cancel = T.after(line, 500); }, 1200 / ctx.speed);
+        cancel = T.after(() => { if (want) { want = null; say.textContent = '🧓 "대답 안 해?"'; ctx.hit(); } cancel = T.after(line, 500); }, 1800 / ctx.speed);
       } else {
         want = null; say.textContent = `🧓 "${pick(PLAIN, ctx.rng)}..."`;
         cancel = T.after(line, (700 + ctx.rng() * 600) / ctx.speed);

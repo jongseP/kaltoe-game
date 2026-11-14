@@ -29,4 +29,6 @@ export const SLOWDOWN_AFTER_FAILS = 3;
 export const SLOWDOWN_FACTOR = 0.8;
 // 직급이 오를수록 🆕 MZ 스테이지 비중이 커진다 (인턴 1배 → 임원 3배)
 export const mzWeight = (rankIndex) => 1 + 0.4 * rankIndex;
-export const interruptChance = (rankIndex) => 0.2 + 0.04 * rankIndex;
+export const interruptChance = (rankIndex) => 0.3 + 0.04 * rankIndex;
+// 방해 요소(판을 멈추지 않는 것)가 스테이지에 낄 확률: 오후로 갈수록 잦다
+export const nuisanceChance = (slotIndex) => 0.3 + 0.05 * slotIndex;

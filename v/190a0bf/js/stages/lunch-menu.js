@@ -41,7 +41,7 @@ export default {
       const hintAt = (1500 + ctx.rng() * 1500) / ctx.speed;
       cancel.push(T.after(() => {
         say.textContent = `🧓 팀장님: 음... ${answer}...? 아무거나`;
-        cancel.push(T.after(() => { say.textContent = '🧓 팀장님: 아무거나 먹자니까'; }, 900 / ctx.speed));
+        cancel.push(T.after(() => { say.textContent = '🧓 팀장님: 아무거나 먹자니까'; }, 1500 / ctx.speed));
       }, hintAt));
     };
     start();

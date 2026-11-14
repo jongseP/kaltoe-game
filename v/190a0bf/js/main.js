@@ -5,10 +5,11 @@ import { makeRng } from './rng.js';
 import { pickStage } from './day.js';
 import { createRun } from './run.js';
 import { drawCard, shareResult } from './share.js';
-import { RANKS, HIT_DAMAGE, TIMEOUT_DAMAGE, STAGE_SECONDS, STARS_TO_PROMOTE, SLOTS, speedFor, slotSpeed, SLOWDOWN_FACTOR, interruptChance, mzWeight } from './config.js';
+import { RANKS, HIT_DAMAGE, TIMEOUT_DAMAGE, STAGE_SECONDS, STARS_TO_PROMOTE, SLOTS, speedFor, slotSpeed, SLOWDOWN_FACTOR, interruptChance, nuisanceChance, mzWeight } from './config.js';
 import { load, save, applyClear, applyOvertime, applyStageResult, buyStar, daysToPromote, isSlowed, skillsFor } from './progress.js';
 import { getStage, poolsBySlot, INTERRUPTS } from './stages/registry.js';
 import { GUIDE, SLOT_BANNER } from './stages/guide.js';
+import NUISANCES from './stages/nuisances.js';
 import { sfx, toast, flash, shake, isMuted, toggleMute } from './fx.js';
 
 const $ = (id) => document.getElementById(id);
@@ -95,7 +96,11 @@ let seen = new Set();
 try { seen = new Set(JSON.parse(store.getItem('kaltoe.seen.v1') || '[]')); } catch { /* 처음이거나 저장소 차단 */ }
 
 // 개발용: ?stage=<id> 이면 하루 내내 그 스테이지
-const devStage = getStage(new URLSearchParams(location.search).get('stage') ?? '')?.id;
+const params = new URLSearchParams(location.search);
+const devStage = getStage(params.get('stage') ?? '')?.id;
+// 개발용: ?popup=<끼어들기 id>, ?nz=<방해 요소 번호> 이면 스테이지마다 그것이 뜬다
+const devPopup = INTERRUPTS.find((d) => d.id === params.get('popup'));
+const devNz = NUISANCES[params.get('nz') ?? ''];
 
 function startRun() {
   $('result-area').replaceChildren();
@@ -115,7 +120,7 @@ function startRun() {
   $('skills').replaceChildren(...skillBtns);
 
   let current = null, shown = -1, last = null, interrupt = null, interruptAt = null;
-  let intro = false, fuse = null, lastSec = 0, card = null;
+  let intro = false, fuse = null, lastSec = 0, card = null, stageHost = null, nuisanceAt = null;
   const INTRO_SECONDS = 1; // 한마디가 떠 있는 동안 스테이지는 멈춰 있다
   const mount = () => {
     current?.destroy();
@@ -145,8 +150,11 @@ function startRun() {
     const speed = speedFor(progress.rank) * slotSpeed(run.slotIndex) * (isSlowed(progress, stage.id) ? SLOWDOWN_FACTOR : 1);
     current = stage.create(host, { hit: () => run.hit(), clear: () => run.clear(), goal, speed, rng });
     current.pause(); intro = true;
+    // 한마디가 떠 있는 동안은 입력을 막는다 (앞 게임에서 누르던 손가락이 새 게임 버튼을 누르지 않게)
+    stageHost = host; host.style.pointerEvents = 'none';
     card?.remove(); card = null;
-    if (seen.has(stage.id)) toast(cmd, 'cmd', INTRO_SECONDS * 1000);
+    const first = !seen.has(stage.id);
+    if (!first) toast(cmd, 'cmd', INTRO_SECONDS * 1000);
     else {
       // 처음 보는 게임: 설명 카드를 띄우고 [시작]을 누를 때까지 시간을 멈춘다
       const mine = card = document.createElement('div');
@@ -176,8 +184,9 @@ function startRun() {
       $('desk').append(card);
       run.pause();
     }
-    // 스테이지마다 이벤트는 최대 1번: 3~10초 사이 무작위 시점
-    interruptAt = rng() < interruptChance(progress.rank) ? 3 + rng() * 7 : null;
+    // 스테이지마다 끼어들기·방해 요소는 각각 최대 1번. 처음 보는 게임에는 끼지 않는다
+    interruptAt = devPopup ? 3 : !first && !devNz && rng() < interruptChance(progress.rank) ? 3 + rng() * 7 : null;
+    nuisanceAt = devNz ? 2 : !first && !devPopup && rng() < nuisanceChance(run.slotIndex) ? 2 + rng() * 10 : null;
   };
 
   const closeInterrupt = (resume) => {
@@ -189,13 +198,16 @@ function startRun() {
   };
   const openInterrupt = () => {
     interruptAt = null;
-    const def = INTERRUPTS[Math.floor(rng() * INTERRUPTS.length)];
+    const def = devPopup ?? INTERRUPTS[Math.floor(rng() * INTERRUPTS.length)];
     const wrap = document.createElement('div');
     wrap.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;padding:12px;background:rgba(0,0,0,.3)';
     const host = document.createElement('div');
     host.style.width = '100%';
     wrap.append(host);
     $('overlay-area').append(wrap);
+    // 갑자기 뜬 창을 게임 누르던 손가락이 바로 눌러 버리지 않게 잠깐 입력을 막는다
+    host.style.pointerEvents = 'none';
+    setTimeout(() => { host.style.pointerEvents = ''; }, 500);
     run.pause(); current?.pause();
     sfx.alert();
     interrupt = { wrap };
@@ -262,13 +274,14 @@ function startRun() {
     if (run.status === 'cleared' || run.status === 'overtime') return finish();
     for (const e of run.events.splice(0)) onEvent(e);
     if (shown !== run.serial) mount();
-    if (intro && run.elapsed >= INTRO_SECONDS) { intro = false; if (!interrupt && !document.hidden) current?.resume(); }
+    if (intro && run.elapsed >= INTRO_SECONDS) { intro = false; stageHost.style.pointerEvents = ''; if (!interrupt && !document.hidden) current?.resume(); }
     const left = run.stageLeft();
     fuse.firstChild.style.width = `${100 * left / STAGE_SECONDS}%`;
     fuse.classList.toggle('low', left <= 5);
     if (left <= 5 && Math.ceil(left) !== lastSec && !interrupt) sfx.tick();
     lastSec = Math.ceil(left);
     if (interruptAt !== null && !interrupt && run.elapsed >= interruptAt) openInterrupt();
+    if (nuisanceAt !== null && !interrupt && !intro && run.elapsed >= nuisanceAt) { nuisanceAt = null; (devNz ?? NUISANCES[Math.floor(rng() * NUISANCES.length)])($('stage-area'), rng); }
     skills.forEach((id, i) => { skillBtns[i].disabled = run.usedSkills.has(id) || (id === 'goHome' && run.slotIndex !== 5); });
     renderStatus($('statusbar'), { progress, run });
     requestAnimationFrame(frame);

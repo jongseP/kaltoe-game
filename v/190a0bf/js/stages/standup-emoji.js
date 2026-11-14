@@ -1,5 +1,5 @@
 // 스탠딩 미팅 체크인: 팀원 5명의 기분 이모지가 잠깐 보였다 사라진다. 가장 많은 이모지를 골라 분위기를 맞춘다(3번). 틀리면 hit.
-import { makeTimers, button, shuffled, handle } from './ui.js';
+import { makeTimers, shuffled, handle, ask } from './ui.js';
 const EMO = ['😊', '😐', '😫', '🔥', '🥱', '😎'];
 
 export default {
@@ -19,12 +19,16 @@ export default {
       box.replaceChildren();
       T.after(() => {
         row.textContent = '❓❓❓❓❓';
-        box.replaceChildren(...shuffled(opts, ctx.rng).map((e) => button(e, () => {
-          if (e !== major) { msg.textContent = '팀장님: 혼자 분위기 왜 그래?'; return ctx.hit(); }
-          if (ctx.goal(++round, 3)) return ctx.clear();
-          start();
-        }, 'font-size:24px')));
-      }, 1100 / ctx.speed);
+        ask(T, box, {
+          options: shuffled(opts, ctx.rng), right: major, css: 'font-size:24px',
+          onPick: (ok) => {
+            row.textContent = team.join(''); // 답을 다시 보여 준다
+            if (ok) return void ctx.goal(++round, 3);
+            msg.textContent = '팀장님: 혼자 분위기 왜 그래?'; ctx.hit();
+          },
+          then: () => (round >= 3 ? ctx.clear() : start()),
+        });
+      }, 1600 / ctx.speed);
     };
     start();
     return handle(T, host);
