@@ -12,7 +12,7 @@
 //       return { pause(){}, resume(){}, destroy(){} };
 //     }
 //   };
-import { MENTAL_START, HIT_DAMAGE, TIMEOUT_DAMAGE, STAGE_SECONDS, DAY_SECONDS, CLEAR_HEAL, END_MIN, BURNOUT_REFILL, COMBO_BONUS_EVERY } from './config.js';
+import { SLOTS, MENTAL_START, HIT_DAMAGE, TIMEOUT_DAMAGE, STAGE_SECONDS, DAY_SECONDS, CLEAR_HEAL, END_MIN, BURNOUT_REFILL, COMBO_BONUS_EVERY } from './config.js';
 import { minuteAt, slotAt } from './day.js';
 
 // pick(slotIndex, prevId) → 다음 스테이지 id
@@ -26,12 +26,17 @@ export function createRun({ pick, skills }) {
     now: () => (run.status === 'cleared' || run.status === 'overtime' ? END_MIN : minuteAt(run.dayElapsed)),
     stageLeft: () => Math.max(0, STAGE_SECONDS - run.elapsed),
   };
+  // 보너스 타임(점심): 실수해도 멘탈이 안 깎이고 완벽 처리 💰이 2배
+  // 쉬는 시간: breakFirst 칸에 들어선 첫 게임 하나도 보너스다
+  let onBreak = false;
+  run.bonus = () => onBreak || !!SLOTS[run.slotIndex]?.bonus;
   // clear() 중복 가드: 새 스테이지를 띄운 뒤 tick()이 한 번도 없었으면 clear()를 무시한다.
   let fresh = false;
 
   // 칸(시간대)은 스테이지 사이에서만 바뀐다. 하던 게임을 중간에 자르지 않는다.
   function next() {
     const slot = slotAt(run.now());
+    onBreak = slot !== run.slotIndex && !!SLOTS[slot]?.breakFirst;
     if (slot !== run.slotIndex) { run.slotIndex = slot; run.events.push({ type: 'slot' }); }
     run.stageId = pick(run.slotIndex, run.stageId);
     run.serial++; run.elapsed = 0; run.stageHadHit = false; fresh = true; run.played++;
@@ -60,6 +65,7 @@ export function createRun({ pick, skills }) {
   run.hit = () => {
     if (run.status !== 'playing') return;
     run.stageHadHit = true;
+    if (run.bonus()) { run.events.push({ type: 'miss' }); return; }
     if (run.shield) { run.shield = false; run.events.push({ type: 'shield' }); return; }
     run.events.push({ type: 'hit' });
     damage(HIT_DAMAGE);
@@ -67,16 +73,17 @@ export function createRun({ pick, skills }) {
   run.timeout = () => {
     if (run.status !== 'playing') return;
     run.events.push({ type: 'timeout' });
-    damage(TIMEOUT_DAMAGE); next();
+    if (!run.bonus()) damage(TIMEOUT_DAMAGE);
+    next();
   };
   run.clear = () => {
     if (run.status !== 'playing' || fresh) return;
     if (!run.stageHadHit) {
-      run.coins++; run.mental = Math.min(100, run.mental + CLEAR_HEAL);
+      run.coins += run.bonus() ? 2 : 1; run.mental = Math.min(100, run.mental + CLEAR_HEAL);
       run.cleanClears++; run.combo++; run.bestCombo = Math.max(run.bestCombo, run.combo);
       const bonus = run.combo % COMBO_BONUS_EVERY === 0;
       if (bonus) run.coins++;
-      run.events.push({ type: 'clean', combo: run.combo, bonus });
+      run.events.push({ type: 'clean', combo: run.combo, coins: (run.bonus() ? 2 : 1) + (bonus ? 1 : 0) });
     } else run.events.push({ type: 'clear' });
     run.clearedIds.push(run.stageId);
     next();

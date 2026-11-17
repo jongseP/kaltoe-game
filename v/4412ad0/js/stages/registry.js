@@ -40,6 +40,7 @@ import bossBehind from './boss-behind.js';
 import bossAway from './boss-away.js';
 import moreInterrupts from './interrupts.js';
 import moreStages from './more.js';
+import arcadeStages from './arcade.js';
 import { SLOTS } from '../config.js';
 
 export const STAGES = [
@@ -49,7 +50,7 @@ export const STAGES = [
   excelRef, nitpick, latte, scoldNod, aiReport, airpods,
   blameDodge, politicsChat, watch, abuseDodge, salaryThief, printer,
   fiveMinMeeting, lastOrder, hoesik, bossBag, juniorLeft, quietQuit,
-  ...moreStages,
+  ...moreStages, ...arcadeStages,
 ];
 // 끼어들기 약속: { id, title, create(host, ctx: {close, hit, addCoin}) → { pause, resume, destroy } }
 export const INTERRUPTS = [bossBehind, bossAway, ...moreInterrupts];

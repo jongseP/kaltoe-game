@@ -2,9 +2,9 @@
 export const SLOTS = [
   { id: 'commute', start: 530 },
   { id: 'morning', start: 600 },
-  { id: 'lunch', start: 720 },
+  { id: 'lunch', start: 720, bonus: true }, // 보너스 타임: 멘탈이 안 깎이고 💰 2배
   { id: 'early', start: 780 },
-  { id: 'late', start: 900 },
+  { id: 'late', start: 900, breakFirst: true }, // 15:00 쉬는 시간: 이 칸의 첫 게임 하나가 보너스
   { id: 'leave', start: 1050 },
 ];
 export const END_MIN = 1080;
@@ -28,6 +28,8 @@ export const speedFor = (rankIndex) => 0.8 + 0.12 * rankIndex;
 export const SLOWDOWN_AFTER_FAILS = 3;
 export const SLOWDOWN_FACTOR = 0.8;
 // 직급이 오를수록 🆕 MZ 스테이지 비중이 커진다 (인턴 1배 → 임원 3배)
+// 몸으로 하는 게임(🎮)은 다른 게임보다 이만큼 자주 나온다
+export const ARCADE_WEIGHT = 2.5;
 export const mzWeight = (rankIndex) => 1 + 0.4 * rankIndex;
 export const interruptChance = (rankIndex) => 0.3 + 0.04 * rankIndex;
 // 방해 요소(판을 멈추지 않는 것)가 스테이지에 낄 확률: 오후로 갈수록 잦다

@@ -5,7 +5,7 @@ import { makeRng } from './rng.js';
 import { pickStage } from './day.js';
 import { createRun } from './run.js';
 import { drawCard, shareResult } from './share.js';
-import { RANKS, HIT_DAMAGE, TIMEOUT_DAMAGE, STAGE_SECONDS, STARS_TO_PROMOTE, SLOTS, speedFor, slotSpeed, SLOWDOWN_FACTOR, interruptChance, nuisanceChance, mzWeight } from './config.js';
+import { COMBO_BONUS_EVERY, RANKS, HIT_DAMAGE, TIMEOUT_DAMAGE, STAGE_SECONDS, STARS_TO_PROMOTE, SLOTS, speedFor, slotSpeed, SLOWDOWN_FACTOR, interruptChance, nuisanceChance, mzWeight, ARCADE_WEIGHT } from './config.js';
 import { load, save, applyClear, applyOvertime, applyStageResult, buyStar, daysToPromote, isSlowed, skillsFor } from './progress.js';
 import { getStage, poolsBySlot, INTERRUPTS } from './stages/registry.js';
 import { GUIDE, SLOT_BANNER } from './stages/guide.js';
@@ -101,14 +101,17 @@ const devStage = getStage(params.get('stage') ?? '')?.id;
 // 개발용: ?popup=<끼어들기 id>, ?nz=<방해 요소 번호> 이면 스테이지마다 그것이 뜬다
 const devPopup = INTERRUPTS.find((d) => d.id === params.get('popup'));
 const devNz = NUISANCES[params.get('nz') ?? ''];
+// 개발용: ?t=<초> 이면 하루가 그만큼 지난 때부터 시작한다 (첫 게임이 끝나면 그 시간대로 넘어간다)
+const devTime = +params.get('t') || 0;
 
 function startRun() {
   $('result-area').replaceChildren();
   const rng = makeRng(Date.now());
   const skills = skillsFor(progress.rank);
   const pools = poolsBySlot();
-  const pick = devStage ? () => devStage : (slot, prev) => pickStage(pools[SLOTS[slot].id], prev, rng, (id) => (getStage(id).tag === '🆕' ? mzWeight(progress.rank) : 1));
+  const pick = devStage ? () => devStage : (slot, prev) => pickStage(pools[SLOTS[slot].id], prev, rng, (id) => ({ '🆕': mzWeight(progress.rank), '🎮': ARCADE_WEIGHT }[getStage(id).tag] ?? 1));
   const run = createRun({ pick, skills });
+  if (devTime) run.dayElapsed = devTime;
 
   const skillBtns = skills.map((id) => {
     const b = document.createElement('button');
@@ -162,7 +165,7 @@ function startRun() {
       const cb = document.createElement('div');
       cb.className = 'card';
       cb.innerHTML = '<div>처음 보는 업무!</div><div class="cmdword"></div><div class="line"></div><div class="line" style="color:#a00000"></div><div class="stats"></div>';
-      cb.lastChild.textContent = `실수하면 멘탈 -${HIT_DAMAGE} · ${STAGE_SECONDS}초 안에 못 끝내면 -${TIMEOUT_DAMAGE}`;
+      cb.lastChild.textContent = run.bonus() ? '🎁 보너스 타임: 실수해도 멘탈이 안 깎이고 💰 2배' : `실수하면 멘탈 -${HIT_DAMAGE} · ${STAGE_SECONDS}초 안에 못 끝내면 -${TIMEOUT_DAMAGE}`;
       cb.children[1].textContent = cmd;
       cb.children[2].textContent = `🎯 목표: ${goalText}`;
       if (warnText) cb.children[3].textContent = `⚠ 주의: ${warnText}`; else cb.children[3].remove();
@@ -228,16 +231,18 @@ function startRun() {
   // run이 쌓아 둔 사건을 화면·소리 효과로 바꾼다
   const onEvent = (e) => {
     if (e.type === 'hit') { sfx.hit(); shake(); flash('#c00000'); toast(`멘탈 -${HIT_DAMAGE}`, 'bad', 600); }
+    else if (e.type === 'miss') { sfx.hit(); toast('앗! (보너스 타임이라 멘탈은 그대로)', '', 700); }
     else if (e.type === 'shield') toast('🛡 "회의 때 말씀드릴게요" 막음!');
     else if (e.type === 'clear') { sfx.clear(); toast('✔ 처리 완료'); }
-    else if (e.type === 'clean') { sfx.clean(); flash('#00a000'); toast(e.bonus ? `✔ 완벽! ${e.combo}연속 💰+2` : '✔ 완벽! 💰+1'); }
+    else if (e.type === 'clean') { sfx.clean(); flash('#00a000'); toast(`✔ 완벽! ${e.combo % COMBO_BONUS_EVERY === 0 ? `${e.combo}연속 ` : ''}💰+${e.coins}`); }
     else if (e.type === 'timeout') { sfx.timeout(); shake(); toast('⏰ 시간 초과', 'bad'); }
     else if (e.type === 'burnout') { sfx.burnout(); flash('#000'); toast(`😵 번아웃! 야근 +1시간`, 'bad big', 1600); }
-    else if (e.type === 'slot') { sfx.slot(); toast(`${SLOT_BANNER[run.slotIndex]} · 속도 UP`, 'big', 1400); }
+    else if (e.type === 'slot') { sfx.slot(); toast(SLOTS[run.slotIndex].bonus ? '🎁 점심 보너스 타임!' : run.bonus() ? '☕ 쉬는 시간! 이번 게임은 보너스' : `${SLOT_BANNER[run.slotIndex]} · 속도 UP`, 'big', 1400); }
   };
 
   const finish = () => {
     visibility = null;
+    $('desk').classList.remove('bonus');
     // 이번 판 💰은 progress에 이미 합쳐졌으니 패널에서는 0으로 보여 준다
     const settled = { now: () => run.now(), mental: run.mental, coins: 0, overtimeHours: run.overtimeHours };
     const stats = `오늘 처리 ${run.clearedIds.length}건 · 완벽 ${run.cleanClears}건 · 최고 ${run.bestCombo}연속`;
@@ -283,6 +288,7 @@ function startRun() {
     if (interruptAt !== null && !interrupt && run.elapsed >= interruptAt) openInterrupt();
     if (nuisanceAt !== null && !interrupt && !intro && run.elapsed >= nuisanceAt) { nuisanceAt = null; (devNz ?? NUISANCES[Math.floor(rng() * NUISANCES.length)])($('stage-area'), rng); }
     skills.forEach((id, i) => { skillBtns[i].disabled = run.usedSkills.has(id) || (id === 'goHome' && run.slotIndex !== 5); });
+    $('desk').classList.toggle('bonus', run.bonus());
     renderStatus($('statusbar'), { progress, run });
     requestAnimationFrame(frame);
   };
@@ -290,18 +296,28 @@ function startRun() {
   requestAnimationFrame(frame);
 }
 
-startRun();
-
-// 첫 판 안내 쪽지: 한 번 탭하면 닫히고 다시 뜨지 않는다
-try {
-  if (!store.getItem('kaltoe.tip.v1')) {
-    const tip = document.createElement('div');
-    tip.textContent = '💡 멘탈이 바닥날 때마다 야근 +1시간! 야근 없이 18:00이 되면 칼퇴 ★, ★ 3개면 진급';
-    tip.style.cssText = 'position:absolute;top:4px;left:12px;right:12px;z-index:5;background:#ffffa0;border:1px solid #808000;padding:6px 8px;box-shadow:2px 2px 0 rgba(0,0,0,.4);cursor:pointer';
-    tip.addEventListener('click', () => {
-      tip.remove();
-      try { store.setItem('kaltoe.tip.v1', '1'); } catch { /* 저장 실패해도 괜찮다 */ }
-    });
-    $('desk').append(tip);
-  }
-} catch { /* localStorage 접근 불가 */ }
+// 시작 화면: 무엇을 하는 게임인지 먼저 알려 준다
+function showStart() {
+  const body = document.createElement('div');
+  body.className = 'card';
+  body.innerHTML = `<div class="cmdword" style="font-size:22px">목표: 18:00까지 버티기</div>
+    <div class="line">🎮 20초 안팎의 <b>미니게임</b>이 계속 나옵니다. 창 위의 🎯 설명대로 하면 성공!</div>
+    <div class="line">💚 실수하거나 시간을 넘기면 <b>멘탈</b>이 깎이고, 0이 되면 <b>야근 +1시간</b></div>
+    <div class="line">🏁 야근 없이 18:00이 되면 <b>승리(칼퇴)</b>, ★ 3개를 모으면 진급</div>
+    <div class="line">🎁 점심시간과 15시 쉬는 시간은 <b>보너스 타임</b>: 멘탈이 안 깎이고 💰 2배</div>
+    <div class="stats">한 판 = 하루 = 10분</div>`;
+  const go = document.createElement('button');
+  go.className = 'raised bt';
+  go.textContent = '▶ 게임 시작';
+  go.addEventListener('click', startRun);
+  body.append(go);
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;padding:12px';
+  const w = document.createElement('div');
+  w.style.width = '100%';
+  w.append(makeWindow({ title: '칼퇴.exe', body }));
+  wrap.append(w);
+  $('result-area').replaceChildren(wrap);
+}
+// 개발용 주소는 바로 시작
+if (devStage || devPopup || devNz || devTime) startRun(); else showStart();

@@ -51,6 +51,13 @@ const meetingRoom = {
   },
 };
 
+// 더치페이 계산: 정답과 오답 보기 2개. boss면 팀장님을 빼고 나눈다. (tests/registry.test.js가 모든 경우를 검사)
+export function bill(people, total, boss) {
+  const answer = total / (boss ? people - 1 : people);
+  const wrong = [...new Set([boss ? total / people : total / (people - 1), answer + 1000, answer - 2000])].filter((v) => v !== answer).slice(0, 2);
+  return { answer, wrong };
+}
+
 // 더치페이: 1인당 얼마인지 고른다(3번). "난 지갑 두고 왔네"가 나오면 팀장님을 빼고 나눠야 한다. 틀리거나 5초 넘기면 hit.
 const splitBill = {
   id: 'split-bill', slot: 'lunch', title: '더치페이.calc', tag: '💼',
@@ -63,9 +70,8 @@ const splitBill = {
     const round = () => {
       const people = 3 + Math.floor(ctx.rng() * 2), total = 12000 * (2 + Math.floor(ctx.rng() * 3));
       const boss = ctx.rng() < 0.5;
-      const answer = total / (boss ? people - 1 : people);
-      const wrong = [...new Set([boss ? total / people : total / (people - 1), answer + 1000, answer - 2000])].filter((v) => v !== answer).slice(0, 2);
-      say.textContent = `🧾 ${people}명이 ${won(total)}\n${boss ? '🧓 "아이고, 난 지갑을 두고 왔네"' : '🧓 "오늘은 각자 내자"'}\n내는 사람 1인당?`;
+      const { answer, wrong } = bill(people, total, boss);
+      say.textContent = `🧾 팀장님 포함 ${people}명, 합계 ${won(total)}\n${boss ? '🧓 "난 지갑을 두고 왔네" (팀장님 빼고 나누기)' : '🧓 "오늘은 각자 내자" (모두 똑같이)'}\n돈 내는 사람 1인당 얼마?`;
       ask(T, row, {
         options: shuffled([answer, ...wrong], ctx.rng).map(won), right: won(answer), ms: 8000 / ctx.speed, css: 'height:48px;font-size:12px',
         onPick: (ok, v) => {

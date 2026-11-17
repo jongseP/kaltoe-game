@@ -97,3 +97,6 @@ button { touch-action: manipulation; }
 @keyframes slidein { from { transform: translateX(100%); } }
 @keyframes sway { 0%, 100% { transform: translateX(-14px) rotate(-1.5deg); } 50% { transform: translateX(14px) rotate(1.5deg); } }
 @media (prefers-reduced-motion: reduce) { .sway { animation: none; } }
+/* 보너스 타임(점심) */
+#desk.bonus { background: #a05a00; }
+#desk.bonus::before { content: '🎁 보너스 타임 · 멘탈 안 깎임 · 💰 2배'; position: absolute; top: 2px; left: 0; right: 0; text-align: center; color: #ffe14d; font-weight: bold; text-shadow: 1px 1px 0 #000; pointer-events: none; }
