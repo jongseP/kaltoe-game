@@ -24,7 +24,7 @@ export default {
       if (heldIdle >= 1600) { heldIdle = 0; note.textContent = '🧓 "왜 혼자 바쁜 척이야?"'; ctx.hit(); }
     }, 50);
     const away = () => {
-      looking = false; eye.textContent = '🪑'; note.textContent = `팀장님 이동 중... (${looks}/5)`;
+      looking = false; eye.textContent = '🪑'; note.textContent = `팀장님 이동 중... (${looks}/4)`;
       cancel = T.after(look, (900 + ctx.rng() * 1800) / ctx.speed);
     };
     const look = () => {
@@ -32,8 +32,8 @@ export default {
       // 반응할 틈은 아주 잠깐
       cancel = T.after(() => {
         if (!held) miss();
-        cancel = T.after(() => { if (ctx.goal(++looks, 5)) return ctx.clear(); away(); }, 1000 / ctx.speed);
-      }, 350);
+        cancel = T.after(() => { if (ctx.goal(++looks, 4)) return ctx.clear(); away(); }, 1000 / ctx.speed);
+      }, 600);
     };
     away();
     return { pause: T.pause, resume: T.resume, destroy() { cancel(); T.destroy(); host.replaceChildren(); } };

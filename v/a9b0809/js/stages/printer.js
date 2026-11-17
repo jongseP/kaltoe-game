@@ -17,7 +17,7 @@ export default {
       cancel();
       dir = ctx.rng() < 0.5 ? -1 : 1;
       say();
-      if (ctx.rng() < 0.4) cancel = T.after(() => { dir = -dir; say('\n🖨 아 반대였다'); }, (300 + ctx.rng() * 700) / ctx.speed);
+      if (ctx.rng() < 0.4) cancel = T.after(() => { dir = -dir; say('\n🖨 아 반대였다'); }, (200 + ctx.rng() * 250) / ctx.speed);
     };
     newJam();
     paper.addEventListener('pointerdown', (e) => {

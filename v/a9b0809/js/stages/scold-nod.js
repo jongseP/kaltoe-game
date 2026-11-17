@@ -11,9 +11,9 @@ export default {
     host.innerHTML = '<div class="sunken" style="padding:10px;min-height:40px;font-size:16px"></div><div style="text-align:center;margin:6px 0"></div><div style="display:flex;gap:6px"></div>';
     const say = host.firstChild, cnt = host.children[1], row = host.lastChild;
     let want = null, ok = 0, cancel = () => {};
-    const status = () => { cnt.textContent = `맞장구 ${ok}/6`; };
+    const status = () => { cnt.textContent = `맞장구 ${ok}/5`; };
     const line = () => {
-      if (ctx.rng() < 0.45) {
+      if (ctx.rng() < 0.55) {
         const [q, a] = pick(ENDS, ctx.rng);
         want = a; say.textContent = `🧓 "${q}"`;
         cancel = T.after(() => { if (want) { want = null; say.textContent = '🧓 "대답 안 해?"'; ctx.hit(); } cancel = T.after(line, 500); }, 1800 / ctx.speed);
@@ -24,8 +24,8 @@ export default {
     };
     const reply = (a) => () => {
       if (!want || a !== want) { say.textContent = '🧓 "내가 말하는데 끼어들어?"'; want = null; cancel(); ctx.hit(); cancel = T.after(line, 600); return; }
-      want = null; cancel();
-      if (ctx.goal(++ok, 6)) return ctx.clear();
+      want = null; cancel(); say.textContent = '🧓 "그래."';
+      if (ctx.goal(++ok, 5)) return ctx.clear();
       status(); cancel = T.after(line, 400);
     };
     row.append(button('네!', reply('네!'), 'flex:1;height:48px'), button('그럼요', reply('그럼요'), 'flex:1;height:48px'));

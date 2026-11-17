@@ -22,7 +22,7 @@ export default {
         note.textContent = m >= 30 ? '🧓 "지각이네?"' : '🧓 "너무 일찍 와서 뭐 하게?"';
         ctx.hit();
       }
-      m = Math.floor(ctx.rng() * 15) + 40;
+      m = Math.floor(ctx.rng() * 10);
       draw();
     }, 'width:100%;height:48px'));
     note.textContent = '08:20~08:29에 누르세요 (0/3)';

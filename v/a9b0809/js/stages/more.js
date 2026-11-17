@@ -46,7 +46,7 @@ const meetingRoom = {
     function draw(r, i) { r.b.textContent = i === vip ? '🟢 임원 전용' : `${r.free ? '🟢' : '🔴'} ${i + 1}회의실`; }
     rooms.forEach(draw);
     grid.append(...rooms.map((r) => r.b));
-    T.every(() => { const i = Math.floor(ctx.rng() * 6); if (i === vip) return; rooms[i].free = !rooms[i].free; draw(rooms[i], i); }, 450 / ctx.speed);
+    T.every(() => { const i = Math.floor(ctx.rng() * 6); if (i === vip) return; rooms[i].free = !rooms[i].free; draw(rooms[i], i); }, 750 / ctx.speed);
     return handle(T, host);
   },
 };
@@ -154,7 +154,7 @@ const elevatorDown = {
     const wait = () => { state = 'wait'; car.textContent = '🔽'; info.textContent = '내려오는 중...'; T.after(arrive, (500 + ctx.rng() * 700) / ctx.speed); };
     const arrive = () => {
       const r = ctx.rng();
-      state = r < 0.4 ? 'full' : r < 0.65 ? 'boss' : 'ok';
+      state = r < 0.25 ? 'full' : r < 0.45 ? 'boss' : 'ok';
       const riders = state === 'full' ? 8 : 2 + Math.floor(ctx.rng() * 5);
       car.textContent = `🚪 ${state === 'boss' ? '🧓' : ''}${'👤'.repeat(Math.min(riders, 6))}`;
       info.textContent = `${riders}명 / 정원 8명${state === 'boss' ? ' (팀장님 탑승)' : ''}`;

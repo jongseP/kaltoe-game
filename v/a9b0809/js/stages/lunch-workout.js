@@ -12,7 +12,7 @@ export default {
     const clock = host.firstChild.firstElementChild, reps = host.firstChild.lastElementChild;
     const man = host.children[1], note = host.children[2], row = host.lastChild;
     let min = 0, n = 0, photo = false, shot = false, back = false, up = false, cancel = () => {};
-    const draw = () => { clock.textContent = `12:${String(Math.floor(min)).padStart(2, '0')}`; reps.textContent = `${n}/25회 ${shot ? '📸✅' : '📸❌'}`; ctx.goal(n, 25, '회'); };
+    const draw = () => { clock.textContent = `12:${String(Math.floor(min)).padStart(2, '0')}`; reps.textContent = `${n}/20회 ${shot ? '📸✅' : '📸❌'}`; ctx.goal(n, 20, '회'); };
     T.every(() => {
       min += 0.3 * ctx.speed;
       if (min >= 60) { note.textContent = '🧓 "점심시간 끝난 지가 언젠데"'; ctx.hit(); min = 30; }
@@ -24,14 +24,14 @@ export default {
       cancel = T.after(() => { if (photo) { photo = false; note.textContent = '😭 인증샷 놓침 (다시 기회 올 때까지)'; ctx.hit(); } }, 1000 / ctx.speed);
     }, 1200);
     row.append(
-      button('💪 1회', () => { if (n >= 25) return; n++; man.textContent = (up = !up) ? '🏋️‍♂️' : '🏋️'; draw(); }, 'flex:2;height:48px'),
+      button('💪 1회', () => { if (n >= 20) return; n++; man.textContent = (up = !up) ? '🏋️‍♂️' : '🏋️'; draw(); }, 'flex:2;height:48px'),
       button('📸', () => {
         if (!photo) { note.textContent = '🙄 아직 펌핑 안 됐는데?'; return ctx.hit(); }
         photo = false; shot = true; cancel(); note.textContent = '✅ 인스타 업로드 완료'; draw();
       }, 'flex:1;height:48px'),
       button('🏃 복귀', () => {
         if (back) return;
-        if (n < 25 || !shot) { note.textContent = n < 25 ? '아직 오운완 아님' : '인증 안 하면 운동 안 한 거임'; return; }
+        if (n < 20 || !shot) { note.textContent = n < 20 ? '아직 오운완 아님' : '인증 안 하면 운동 안 한 거임'; return; }
         if (min >= 55) { note.textContent = '😅 아슬아슬 지각'; ctx.hit(); }
         back = true; ctx.clear();
       }, 'flex:1;height:48px'),

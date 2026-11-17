@@ -48,8 +48,8 @@ const lateRun = {
       // 간격은 시간으로 잡는다: 빨라질수록 장애물 사이 거리도 벌어져 항상 넘을 수 있다
       if ((next -= dt) <= 0) { next = 0.9 + ctx.rng() * 0.8; const o = sprite(pick(['🚧', '🐕', '🛴', '🧳'], ctx.rng), 28); move(o, f.clientWidth + 20, G + 2); obs.push(o); f.append(o.el); }
       for (const o of [...obs]) {
-        move(o, o.x - 190 * ctx.speed * dt, o.y);
-        const bump = Math.abs(o.x - X) < 20 && h < 22;
+        move(o, o.x - 160 * ctx.speed * dt, o.y);
+        const bump = Math.abs(o.x - X) < 15 && h < 18;
         if (bump) ctx.hit();
         if (bump || o.x < -20) { o.el.remove(); obs.splice(obs.indexOf(o), 1); }
       }
@@ -243,7 +243,8 @@ const paperToss = {
   },
 };
 
-// 날아가는 월급: 빠르게 지나가는 💸를 눌러 잡는다(8번). 🧾 고지서를 누르면 hit. 놓치는 건 괜찮다.
+// 날아가는 월급: 지나가는 💸를 눌러 잡는다(8번). 🧾 고지서를 누르면 hit. 놓치는 건 괜찮다.
+// 누른 곳 44px 안에 💸가 있으면 잡힌다(손가락이 살짝 늦어도). 🧾는 바로 위(22px)를 눌렀을 때만.
 const moneyCatch = {
   id: 'money-catch', slot: 'late', title: '날아가는_월급.exe', tag: '🎮',
   create(host, ctx) {
@@ -252,6 +253,16 @@ const moneyCatch = {
     const things = new Set();
     let next = 0.2, t = 0, n = 0, done = false;
     const drop = (o) => { o.el.remove(); things.delete(o); };
+    f.addEventListener('pointerdown', (e) => {
+      if (done) return;
+      const [x, y] = at(e, f);
+      const near = [...things].map((o) => [Math.hypot(o.x - x, o.y - y), o]).sort((a, b) => a[0] - b[0]);
+      const o = near.find(([d, o]) => !o.bad && d < 44)?.[1] ?? near.find(([d, o]) => o.bad && d < 22)?.[1];
+      if (!o) return;
+      drop(o);
+      if (o.bad) return ctx.hit();
+      if (ctx.goal(++n, 8)) { done = true; ctx.clear(); }
+    });
     const A = animate((dt) => {
       if (done) return;
       t += dt;
@@ -259,14 +270,8 @@ const moneyCatch = {
       if ((next -= dt) <= 0) {
         next = (0.35 + ctx.rng() * 0.3) / ctx.speed;
         const bad = ctx.rng() < 0.3, dir = ctx.rng() < 0.5 ? 1 : -1;
-        const o = Object.assign(sprite(bad ? '🧾' : '💸', 46), { v: dir * (170 + ctx.rng() * 130) * ctx.speed, y0: 30 + ctx.rng() * (H - 60), ph: ctx.rng() * 6 });
-        o.el.style.cursor = 'pointer';
-        o.el.addEventListener('pointerdown', () => {
-          if (done) return;
-          drop(o);
-          if (bad) return ctx.hit();
-          if (ctx.goal(++n, 8)) { done = true; ctx.clear(); }
-        });
+        const o = Object.assign(sprite(bad ? '🧾' : '💸', 46), { v: dir * (70 + ctx.rng() * 50) * ctx.speed, y0: 30 + ctx.rng() * (H - 60), ph: ctx.rng() * 6 });
+        o.bad = bad; o.el.style.pointerEvents = 'none';
         move(o, dir > 0 ? -25 : W + 25, o.y0);
         things.add(o); f.append(o.el);
       }

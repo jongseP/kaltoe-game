@@ -19,7 +19,7 @@ export default {
     btn.addEventListener('pointercancel', up);
     btn.addEventListener('contextmenu', (e) => e.preventDefault());
     const away = () => { state = 'away'; boss.textContent = '🧓💻'; cancel = T.after(warn, (900 + ctx.rng() * 1500) / ctx.speed); };
-    const warn = () => { state = 'warn'; boss.textContent = '😐💻'; cancel = T.after(look, 400 / ctx.speed); };
+    const warn = () => { state = 'warn'; boss.textContent = '😐💻'; cancel = T.after(look, Math.max(550, 650 / ctx.speed)); };
     const look = () => {
       state = 'look'; boss.textContent = '👀';
       if (held) { note.textContent = '🧓 "어디 가?"'; ctx.hit(); pos = Math.max(0, pos - 25); held = false; draw(); }

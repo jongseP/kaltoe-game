@@ -10,7 +10,7 @@ export default {
     const msg = host.firstChild, st = host.children[1];
     let approved = false, days = 0;
     const tick = () => {
-      approved = ctx.rng() < 0.18;
+      approved = ctx.rng() < 0.3;
       st.textContent = approved ? '✅ 승인' : pick(OTHER, ctx.rng);
       st.style.color = approved ? '#008000' : '';
     };

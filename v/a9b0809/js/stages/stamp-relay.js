@@ -25,7 +25,7 @@ export default {
         say(); draw();
       }, 'height:48px')));
     };
-    T.every(() => { away = ctx.rng() < 0.4 ? DESKS[Math.floor(ctx.rng() * 3)] : null; draw(); }, 1500 / ctx.speed);
+    T.every(() => { away = ctx.rng() < 0.4 ? DESKS[Math.floor(ctx.rng() * 3)] : null; draw(); }, 3500 / ctx.speed);
     msg.style.whiteSpace = 'pre-line';
     say(); draw();
     return handle(T, host);

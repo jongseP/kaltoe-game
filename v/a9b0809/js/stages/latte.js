@@ -13,14 +13,14 @@ export default {
   create(host, ctx) {
     const T = makeTimers();
     host.innerHTML = `<div class="sunken" style="padding:8px;min-height:92px"></div>
-      <div style="text-align:center;margin:6px 0">끄덕임 <b>0</b>/6</div>
+      <div style="text-align:center;margin:6px 0">끄덕임 <b>0</b>/5</div>
       <button class="raised bt" style="width:100%;touch-action:manipulation">🙂 끄덕끄덕</button>`;
     const bubble = host.firstChild, count = host.querySelector('b');
     let state = 'talk', nods = 0, wait = 0, nodded = false, text = '', total = 0, pauseAt = -1, pauseLeft = 0;
     const startTalk = () => {
       state = 'talk'; wait = 0; nodded = false;
       text = TEXTS[Math.floor(ctx.rng() * TEXTS.length)];
-      total = (1400 + ctx.rng() * 900) / ctx.speed;
+      total = (800 + ctx.rng() * 600) / ctx.speed;
       // 절반 확률로 중간에 숨 고르기(끝난 척)
       pauseAt = ctx.rng() < 0.5 ? Math.floor(text.length * (0.4 + ctx.rng() * 0.3)) : -1;
       pauseLeft = 700 / ctx.speed;
@@ -39,17 +39,17 @@ export default {
         if (pos >= text.length) { state = 'end'; wait = 0; bubble.textContent += '"  (…끝)'; }
       } else if (state === 'end') {
         wait += 50;
-        if (wait >= 650 / ctx.speed) {
+        if (wait >= Math.max(800, 1000 / ctx.speed)) {
           if (!nodded) { bubble.textContent = '🧓 "내 말 듣고 있어?"'; ctx.hit(); }
-          state = 'gap'; wait = 0;
+          state = 'gap'; wait = 0; bubble.textContent = '🧓 (물 한 모금...)';
         }
-      } else if ((wait += 50) >= 500) startTalk();
+      } else if ((wait += 50) >= 400) startTalk();
     }, 50);
     host.querySelector('button').addEventListener('click', () => {
       if (state === 'talk') return ctx.hit();
       if (state !== 'end' || nodded) return;
-      nodded = true; count.textContent = ++nods;
-      if (ctx.goal(nods, 6)) ctx.clear();
+      nodded = true; count.textContent = ++nods; bubble.textContent = '🧓 "그렇지."';
+      if (ctx.goal(nods, 5)) ctx.clear();
     });
     return { pause: T.pause, resume: T.resume, destroy() { T.destroy(); host.replaceChildren(); } };
   },

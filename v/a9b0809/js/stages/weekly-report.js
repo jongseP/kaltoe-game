@@ -35,7 +35,7 @@ export default {
       }));
     };
     shuffle();
-    T.every(shuffle, 1400 / ctx.speed);
+    T.every(shuffle, 4000 / ctx.speed);
     return { pause: T.pause, resume: T.resume, destroy() { T.destroy(); host.replaceChildren(); } };
   },
 };

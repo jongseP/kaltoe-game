@@ -23,7 +23,7 @@ export default {
       mk('전체 답장', () => { ctx.hit(); swap(); }),
     );
     show(); swap();
-    T.every(swap, 700 / ctx.speed);
+    T.every(swap, 2000 / ctx.speed);
     return { pause: T.pause, resume: T.resume, destroy() { T.destroy(); host.replaceChildren(); } };
   },
 };

@@ -25,13 +25,13 @@ export default {
         b.remove(); status();
         if (!adding && left() === 0) ctx.clear();
       });
-      list.prepend(b);
-      if (left() > 7) { list.lastChild.remove(); msg.textContent = '😩 일이 넘쳐서 하나 놓쳤다'; ctx.hit(); return; }
+      list.append(b);
+      if (left() > 8) { list.firstChild.remove(); msg.textContent = '😩 일이 넘쳐서 하나 놓쳤다'; ctx.hit(); return; }
       status();
     };
     for (let i = 0; i < 3; i++) add();
-    T.every(() => { if (adding) add(); }, 700 / ctx.speed);
-    T.after(() => { adding = false; status(); if (left() === 0) ctx.clear(); }, 6000);
+    T.every(() => { if (adding) add(); }, 1000 / ctx.speed);
+    T.after(() => { adding = false; status(); if (left() === 0) ctx.clear(); }, 4000);
     return handle(T, host);
   },
 };

@@ -16,13 +16,13 @@ export default {
     draw();
     T.every(() => {
       if (stall) return;
-      p = Math.max(0, p - 0.7 * ctx.speed);
+      p = Math.max(0, p - 0.5 * ctx.speed);
       if (p === 0) { ctx.hit(); p = 30; }
       draw();
     }, 50);
     host.querySelector('button').addEventListener('click', () => {
       if (stall) { p = Math.max(0, p - 15); draw(); msg.textContent = '⚠ 기다리라니까요 (재요청)'; return; }
-      p = Math.min(100, p + 5);
+      p = Math.min(100, p + 6);
       if (p >= 99 && !stalled) {
         stalled = stall = true; p = 99; msg.textContent = '⏳ 서버 응답 대기 중... 지금은 누르지 마세요!';
         T.after(() => { stall = false; msg.textContent = '✅ 응답 옴! 한 번만 더 누르세요'; }, (900 + ctx.rng() * 900) / ctx.speed);

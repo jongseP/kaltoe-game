@@ -14,7 +14,7 @@ export default {
     let z = 20, left = 12000, clap = false, clapTimer = () => {};
     const draw = () => { bar.style.width = `${z}%`; pct.textContent = `${Math.floor(z)}% · 남은 훈화 ${Math.ceil(left / 1000)}초`; };
     T.every(() => {
-      z = Math.min(100, z + 0.9 * ctx.speed);
+      z = Math.min(100, z + 0.7 * ctx.speed);
       if (z >= 100) { ctx.hit(); talk.textContent = '🧓 "거기 자는 사람 누구야?"'; z = 40; }
       left -= 50;
       ctx.goal(Math.floor((12000 - left) / 1000), 12, '초');
@@ -24,7 +24,7 @@ export default {
     T.every(() => {
       if (clap || ctx.rng() < 0.4) return;
       clap = true; talk.textContent = '🧓 "...자 박수!" 👏';
-      clapTimer = T.after(() => { if (clap) { clap = false; ctx.hit(); talk.textContent = '🧓 "박수 안 쳐?"'; } }, 1000 / ctx.speed);
+      clapTimer = T.after(() => { if (clap) { clap = false; ctx.hit(); talk.textContent = '🧓 "박수 안 쳐?"'; } }, 1400 / ctx.speed);
     }, 2200);
     row.append(
       button('😳 정신 차리기', () => { z = Math.max(0, z - 9); draw(); }, 'flex:2;height:48px'),

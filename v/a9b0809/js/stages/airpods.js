@@ -10,7 +10,7 @@ export default {
     const face = host.firstChild, note = host.children[1], row = host.lastChild;
     let pods = true, ok = 0;
     const draw = () => { face.textContent = pods ? '🧑🎧' : '🧑👂'; };
-    T.every(() => { pods = ctx.rng() < 0.55; draw(); }, (500 + ctx.rng() * 500) / ctx.speed);
+    T.every(() => { pods = ctx.rng() < 0.55; draw(); }, (1300 + ctx.rng() * 600) / ctx.speed);
     const call = (byMsg) => () => {
       if (byMsg !== pods) {
         note.textContent = pods ? '🧑 (♪ 못 들음)' : '🧑 "바로 옆인데 말로 하시죠?"';
