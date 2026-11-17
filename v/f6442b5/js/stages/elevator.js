@@ -19,7 +19,7 @@ export default {
     let n = 0;
     const next = () => {
       const q = qs[n];
-      say.textContent = `🛗 ${3 + n * 3}F  🧓 팀장님: ${q.q}`;
+      say.textContent = `🏢 ${3 + n * 3}F  🧓 팀장님: ${q.q}`;
       ask(T, box, {
         options: shuffled([q.ok, ...q.bad], ctx.rng), right: q.ok, ms: 5000 / ctx.speed,
         onPick: (ok, a) => {

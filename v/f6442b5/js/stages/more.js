@@ -1,19 +1,19 @@
 // 추가 스테이지 6개 (시간대마다 1개). 약속은 run.js 머리말과 같다.
 import { makeTimers, button, shuffled, handle, ask } from './ui.js';
 
-// 사원증 찾기: 가방 속 9칸에서 🪪를 찾는다(3번). 칸은 계속 섞이고, 닮은 카드(💳 🎫)나 다른 물건을 누르면 hit.
+// 사원증 찾기: 가방 속 9칸에서 📛를 찾는다(3번). 칸은 계속 섞이고, 닮은 카드(💳 🎫)나 다른 물건을 누르면 hit.
 const badge = {
   id: 'badge', slot: 'commute', title: '사원증_어디갔지.zip', tag: '💼',
   create(host, ctx) {
     const T = makeTimers();
-    const JUNK = ['💳', '🎫', '🔑', '💄', '🎧', '🧻', '🍬', '🔋', '📎', '🪥', '💊'];
+    const JUNK = ['💳', '🎫', '🔑', '💄', '🎧', '🧻', '🍬', '🔋', '📎', '🔦', '💊'];
     host.innerHTML = '<div style="min-height:20px">🚪 출입 게이트 앞... 가방을 뒤진다</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px"></div>';
     const msg = host.firstChild, grid = host.lastChild;
     let n = 0;
     const deal = () => {
-      const items = shuffled(['🪪', '💳', '🎫', ...shuffled(JUNK.slice(2), ctx.rng).slice(0, 6)], ctx.rng);
+      const items = shuffled(['📛', '💳', '🎫', ...shuffled(JUNK.slice(2), ctx.rng).slice(0, 6)], ctx.rng);
       grid.replaceChildren(...items.map((it) => button(it, () => {
-        if (it !== '🪪') { msg.textContent = it === '💳' ? '💳 그건 교통카드' : it === '🎫' ? '🎫 그건 식권' : `${it} 이게 왜 여기 있지`; return ctx.hit(); }
+        if (it !== '📛') { msg.textContent = it === '💳' ? '💳 그건 교통카드' : it === '🎫' ? '🎫 그건 식권' : `${it} 이게 왜 여기 있지`; return ctx.hit(); }
         if (ctx.goal(++n, 3)) return ctx.clear();
         msg.textContent = '삑! ...인식 실패. 다시 찾기'; deal();
       }, 'height:46px;font-size:22px')));
@@ -156,7 +156,7 @@ const elevatorDown = {
       const r = ctx.rng();
       state = r < 0.4 ? 'full' : r < 0.65 ? 'boss' : 'ok';
       const riders = state === 'full' ? 8 : 2 + Math.floor(ctx.rng() * 5);
-      car.textContent = `🛗 ${state === 'boss' ? '🧓' : ''}${'👤'.repeat(Math.min(riders, 6))}`;
+      car.textContent = `🚪 ${state === 'boss' ? '🧓' : ''}${'👤'.repeat(Math.min(riders, 6))}`;
       info.textContent = `${riders}명 / 정원 8명${state === 'boss' ? ' (팀장님 탑승)' : ''}`;
       T.after(() => { if (state !== 'wait') wait(); }, 1100 / ctx.speed);
     };

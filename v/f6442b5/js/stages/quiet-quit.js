@@ -7,7 +7,7 @@ export default {
   create(host, ctx) {
     const T = makeTimers();
     host.innerHTML = `<div style="text-align:center;font-size:36px;line-height:52px">🧓</div>
-      <div class="sunken" style="position:relative;height:36px;margin:6px 0"><span style="position:absolute;right:4px;top:4px;font-size:22px">🚪</span><span style="position:absolute;top:4px;font-size:22px">🥷</span></div>
+      <div class="sunken" style="position:relative;height:36px;margin:6px 0"><span style="position:absolute;right:4px;top:4px;font-size:22px">🚪</span><span style="position:absolute;top:4px;font-size:22px">🚶</span></div>
       <div style="text-align:center;min-height:18px"></div>
       <button class="raised bt" style="width:100%;height:56px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none">누르고 있기: 살금살금</button>`;
     const boss = host.firstChild, me = host.children[1].lastChild, note = host.children[2], btn = host.lastChild;

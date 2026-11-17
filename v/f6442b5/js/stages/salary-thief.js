@@ -14,7 +14,7 @@ export default {
       const d = document.createElement('div');
       d.className = 'raised';
       d.style.cssText = 'height:48px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer';
-      d.textContent = '🧑‍💻';
+      d.textContent = '💻';
       d.addEventListener('pointerdown', () => {
         if (i !== thief) { msg.textContent = '😠 "저 일하고 있는데요?"'; return ctx.hit(); }
         if (ctx.goal(++found, 3)) return ctx.clear();
@@ -30,9 +30,9 @@ export default {
     T.every(() => {
       const d = desks[thief];
       const was = d.textContent;
-      if (was !== '🧑‍💻') return;
+      if (was !== '💻') return;
       d.textContent = SLACK[Math.floor(ctx.rng() * SLACK.length)];
-      T.after(() => { d.textContent = '🧑‍💻'; }, 300 / ctx.speed);
+      T.after(() => { d.textContent = '💻'; }, 300 / ctx.speed);
     }, (1200 + ctx.rng() * 600) / ctx.speed);
     start();
     return handle(T, host);
