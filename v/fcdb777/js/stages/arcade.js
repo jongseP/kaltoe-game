@@ -178,39 +178,46 @@ const coinMerge = {
   },
 };
 
-// 휴지통 골인: 아무 데나 잡고 뒤로 당겼다 놓으면 종이 뭉치가 날아간다. 🗑에 3번 넣는다. 빗나가도 벌점은 없다.
+// 휴지통 골인: 아무 데나 누르고 아무 방향으로 끌었다 놓으면 종이 뭉치가 항상 🗑 쪽(오른쪽 위)으로 날아간다.
+// 멀리 가는 정도는 끈 길이에 정비례(100px = 판 끝까지), 각도는 끈 방향의 기울기. 떨어질 곳까지 점으로 보여 준다.
+// 🗑에 3번 넣는다. 빗나가도 벌점은 없다.
+// (2026-11-17 사용자: "거기까지 절대 안 날아간다" → 예전엔 세기가 길이의 제곱이라 짧게 끌면 코앞에 떨어지고, 통 쪽으로 밀면 뒤로 날아갔다)
+export function tossVelocity(dx, dy, reach, g) {
+  const L = Math.min(Math.hypot(dx, dy), 120);
+  if (L < 15) return null;
+  const a = Math.min(Math.max(Math.atan2(Math.abs(dy), Math.abs(dx)), Math.PI * 25 / 180), Math.PI * 65 / 180);
+  const v = Math.sqrt((reach * L / 100) * g / Math.sin(2 * a));
+  return [v * Math.cos(a), -v * Math.sin(a)];
+}
 const paperToss = {
   id: 'paper-toss', slot: 'early', title: '휴지통_골인.exe', tag: '🎮',
   create(host, ctx) {
     const f = field(210);
-    f.append(tip('↙ 뒤로 당겼다가 놓기 (새총처럼)'));
+    f.append(tip('👆 아무 데나 누르고 끌었다 놓기 · 길게 끌수록 멀리'));
     host.append(f);
     const ball = sprite('📄', 30), bin = sprite('🗑️', 44);
-    const dotsEl = Array.from({ length: 4 }, () => { const d = sprite('●', 12); d.el.style.pointerEvents = 'none'; d.el.style.color = '#1084d0'; return d; });
+    const dotsEl = Array.from({ length: 10 }, () => { const d = sprite('●', 10); d.el.style.pointerEvents = 'none'; d.el.style.color = '#1084d0'; return d; });
     f.append(bin.el, ...dotsEl.map((d) => d.el), ball.el);
     ball.el.style.pointerEvents = bin.el.style.pointerEvents = 'none';
     const GR = 1000;
-    let W = 0, H = 0, start = null, pull = [0, 0], fly = false, vx = 0, vy = 0, n = 0, done = false, placed = false;
+    let W = 0, H = 0, start = null, drag = [0, 0], fly = false, vx = 0, vy = 0, n = 0, done = false, placed = false;
     const home = () => [36, H - 40];
+    const aim = () => tossVelocity(drag[0], drag[1], W - 36, GR);
     const placeBin = () => move(bin, W * (0.5 + ctx.rng() * 0.4), H - 22);
-    const aimDots = (show) => dotsEl.forEach((d, i) => {
-      const t = 0.1 * (i + 1), [hx, hy] = home();
-      d.el.style.visibility = show ? '' : 'hidden';
-      if (show) move(d, hx + pull[0] * 6 * t, hy + pull[1] * 6 * t + GR * t * t / 2);
+    const aimDots = (v) => dotsEl.forEach((d, i) => {
+      d.el.style.visibility = v ? '' : 'hidden';
+      if (!v) return;
+      const t = (-2 * v[1] / GR) * (i + 1) / dotsEl.length, [hx, hy] = home(); // 마지막 점 = 떨어지는 곳
+      move(d, hx + v[0] * t, hy + v[1] * t + GR * t * t / 2);
     });
-    f.addEventListener('pointerdown', (e) => { if (fly) return; start = at(e, f); pull = [0, 0]; capture(f, e); });
-    f.addEventListener('pointermove', (e) => {
-      if (!start) return;
-      const [x, y] = at(e, f);
-      let px = start[0] - x, py = start[1] - y;
-      const len = Math.hypot(px, py), k = len > 120 ? 120 / len : 1;
-      pull = [px * k, py * k];
-    });
+    f.addEventListener('pointerdown', (e) => { if (fly) return; start = at(e, f); drag = [0, 0]; capture(f, e); });
+    f.addEventListener('pointermove', (e) => { if (!start) return; const [x, y] = at(e, f); drag = [x - start[0], y - start[1]]; });
     const up = () => {
       if (!start) return;
       start = null;
-      if (Math.hypot(...pull) < 15) { pull = [0, 0]; return; }
-      fly = true; vx = pull[0] * 6; vy = pull[1] * 6; pull = [0, 0];
+      const v = aim();
+      drag = [0, 0];
+      if (v) { fly = true; [vx, vy] = v; }
     };
     f.addEventListener('pointerup', up);
     f.addEventListener('pointercancel', up);
@@ -218,15 +225,19 @@ const paperToss = {
       if (done) return;
       W = f.clientWidth; H = f.clientHeight;
       if (!placed) { placed = true; placeBin(); }
-      if (!fly) { const [hx, hy] = home(); move(ball, hx - pull[0] * 0.25, hy - pull[1] * 0.25); return aimDots(!!start && Math.hypot(...pull) >= 15); }
-      aimDots(false);
+      if (!fly) {
+        const v = start && aim(), [hx, hy] = home(), k = v ? Math.min(Math.hypot(...drag), 120) * 0.15 / Math.hypot(...v) : 0;
+        move(ball, hx - (v ? v[0] * k : 0), hy - (v ? v[1] * k : 0)); // 새총처럼 반대쪽으로 살짝 당겨진다
+        return aimDots(v);
+      }
+      aimDots(null);
       vy += GR * dt;
       move(ball, ball.x + vx * dt, ball.y + vy * dt);
-      if (vy > 0 && Math.abs(ball.x - bin.x) < 20 && ball.y > H - 44 && ball.y < H - 10) {
+      if (vy > 0 && Math.abs(ball.x - bin.x) < 22 && ball.y > H - 46 && ball.y < H - 8) {
         fly = false;
         if (ctx.goal(++n, 3)) { done = true; return ctx.clear(); }
         placeBin();
-      } else if (ball.y > H + 20 || ball.x > W + 30 || ball.x < -30) fly = false;
+      } else if (ball.y > H + 20 || ball.x > W + 30) fly = false;
     });
     return live(host, A);
   },
